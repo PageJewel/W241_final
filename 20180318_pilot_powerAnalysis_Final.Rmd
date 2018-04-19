@@ -1,0 +1,171 @@
+---
+title: "Pilot Power Analysis"
+date: \today
+output: pdf_document
+---
+
+```{r, include=FALSE} 
+library(data.table) 
+library(lmtest)
+library(ggplot2)
+``` 
+
+# Calculating Power 
+
+## Base Case
+First, create the base case where we are running a simple t-test on difference in means between treatment and control, and the treatment effect is constant for everyone. Use the mean and variance from the pilot pre-survey for self-reported TV since the Netflix data was minimal. Since the pilot was so short, we did not get a good estimate of the treatment effect. Instead, run across a variety of treatment effects and check the power value.
+
+```{r}
+individual_simulation <- function(
+  units, mean_control, sd_control, tau) {
+  ## units is our sample size
+  ## mean_control is the mean TV watched with no treatment
+  ## sd_control is the standard deviation in TV watched with no treatment
+  ## tau is the treatment effect (change in amount of TV for treatment)
+  
+  ## Assume simple randomization among all units with 50% probability of treatment
+  urn <- c('treat', 'control')
+  d <- data.table(id = 1:units)
+  d[ , condition := sample(urn, size = .N, replace = TRUE)]
+  
+  ## Assumes a normal distribution of potential outcome to control
+  ## Mean and SD are supplied to function
+  ## Assumes a constant treatment effect across all participants
+  d[ , Y0 := pmax(rep(0, units),rnorm(units,mean=mean_control, sd = sd_control))]
+  d[ , Y1 := pmax(rep(0, units),Y0 + tau)]
+  d[condition == 'control' , outcome := Y0]
+  d[condition == 'treat' , outcome := Y1]
+  
+  res <- list(
+  'pvalue' = d[ , t.test(outcome ~ condition)$p.value],
+  'tau' = tau, 
+  'baseline_mean' = d[condition == 'control', mean(outcome)],
+  'baseline_n'    = d[condition == 'control', .N],
+  'alt_mean'      = d[condition == 'treat', mean(outcome)], 
+  'alt_n'         = d[condition == 'treat', .N],
+  'df_n'          = d[ , .N],
+  'ate'           = d[condition == 'treat', mean(outcome)] - d[condition == 'control', mean(outcome)]
+  )
+
+  return(res)
+  }
+```
+
+
+If you want to, simulate with particular input values.
+
+```{r} 
+# Simulate experiment many times for particular input values
+# calculate % of cases where results are statistically significant at 5% level
+results <- replicate(1000, individual_simulation(80, 8.6, 6.25, -1), simplify = FALSE)
+results <- rbindlist(results)
+power <- results[ , mean(pvalue < 0.05)]
+power
+``` 
+
+From the simulation below, we see that we would need a treatment effect of around -4.0 hrs/week in order to find a statistically significant result in 80% of cases.
+
+```{r}
+# Allow treatment effect to vary and run many simulated experiments
+# Note this takes several minutes to run
+moving_tau <- seq(from=-1, to= -4, by=-.1)
+
+results <- replicate(10000, 
+                     individual_simulation(80, 8.6, 6.25, sample(moving_tau, size = 1)),
+                     simplify = FALSE)
+results <- rbindlist(results)
+results$sig <- as.numeric(results$pvalue<0.05)
+
+# Calculate power at each treatment effect level and plot them
+results_agg <- aggregate(sig ~ tau, FUN=mean, data=results)
+plot(sig ~ tau, data=results_agg,
+     ylab="power",
+     main = "Power by Treatment Effect Size")
+
+```
+
+## Covariate Case
+Now, we are assuming that pre-experiment average time watching TV will be highly correlated with post-experiment weekly time spent watching TV, our outcome. Using this as a covariate should reduce our SE and provide more power, so we will run a t-test on a regression including this covariate. We will make the same assumptions for our pre-experiment values as we made in the base case for our potential outcomes to control. Then, we will assume that each individuals potential outcomes to control are normally distributed with mean of that individuals TV prior to experiment, and a SD value provided as an input. We will test against several values of this SD since we have no data for it.
+
+```{r}
+individual_simulation_covariate <- function(
+  units, mean_control, sd_control, tau, sd_individual) {
+  ## units is our sample size
+  ## mean_control is the mean TV watched prior to experiment
+  ## sd_control is the standard deviation in TV watched prior to experiment
+  ## tau is the treatment effect (change in amount of TV for treatment)
+  ## sd_individual is the SD for an individuals weekly TV watched with no treatment
+  
+  ## Assume simple randomization among all units with 50% probability of treatment
+  urn <- c('treat', 'control')
+  d <- data.table(id = 1:units)
+  d[ , condition := sample(urn, size = .N, replace = TRUE)]
+  d[ , treated := as.numeric(condition == "treat")]
+  
+  ## Assumes a normal distribution of pre-experiment avg weekly TV
+  ## Mean and SD are supplied to function
+  ## Assumes each individual has a normal distribution centered on their pre-experiment value
+  ## Assumes a constant treatment effect across all participants
+  d[ , preTV := pmax(rep(0, units),rnorm(units,mean=mean_control, sd = sd_control))]
+  d[ , Y0 := pmax(rep(0, units),rnorm(units,mean=preTV, sd = sd_individual))]
+  d[ , Y1 := pmax(rep(0, units),Y0 + tau)]
+  d[condition == 'control' , outcome := Y0]
+  d[condition == 'treat' , outcome := Y1]
+
+  ## Run a regression including preTV as a covariate
+  model <- lm(outcome ~ treated + preTV, data=d)
+  
+  res <- list(
+  'pvalue' = coeftest(model)[2,4],
+  'tau' = tau, 
+  'sd_individual' = sd_individual,
+  'baseline_n'    = d[condition == 'control', .N],
+  'alt_n'         = d[condition == 'treat', .N],
+  'df_n'          = d[ , .N],
+  'ate'           = unname(model$coefficients[2])
+  )
+
+  return(res)
+  }
+```
+
+
+If you want to, simulate with particular input values.
+
+```{r} 
+# Simulate experiment many times for particular input values
+# calculate % of cases where results are statistically significant at 5% level
+results <- replicate(1000, individual_simulation_covariate(80, 8.6, 6.25, -1, 1), simplify = FALSE)
+results <- rbindlist(results)
+power <- results[ , mean(pvalue < 0.05)]
+power
+``` 
+
+From the simulation below, we can see the combinations of individual standard deviation in amount of TV watched per week and treatment effect in order to find a statistically significant result in 80% of cases. For example, if the individual SD was about half that of the overall population (3), we would need a treatment effect of -2 hrs/week to have 80% power.
+
+```{r}
+# Allow treatment effect and sd_individual to vary and run many simulated experiments
+# Note this takes over ten minutes to run
+moving_tau <- seq(from=-1, to= -4, by=-.1)
+moving_sd_individual <- seq(from=1, 5, by=0.2)
+
+results <- replicate(50000, 
+                     individual_simulation_covariate(80, 8.6, 6.25, sample(moving_tau, size = 1), sample(moving_sd_individual, size=1)),
+                     simplify = FALSE)
+results <- rbindlist(results)
+results$sig <- as.numeric(results$pvalue<0.05)
+
+# Calculate power at each treatment effect level and plot them
+results_agg <- aggregate(sig ~ tau + sd_individual, FUN=mean, data=results)
+results_agg$over80 <- factor(as.numeric(results_agg$sig>=0.8))
+
+ggplot(results_agg, aes(x=tau, y=sd_individual)) +
+  geom_raster(aes(fill = sig)) +  scale_fill_gradientn(colours = rev(terrain.colors(10))) + 
+  ggtitle("Power Level by Treatment Effect Size and Individual SD")
+
+ggplot(results_agg, aes(x=tau, y=sd_individual, color=over80)) +
+  geom_point() + 
+  ggtitle("Power Over 80% by Treatment Effect Size and Individual SD")
+
+```
+

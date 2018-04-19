@@ -1,0 +1,96 @@
+---
+title: 'Process Pre-Survey, Randomize Treatment, and Check Covariate Balance'
+author: 'Alyssa Eisenberg, Cameron Bell, Sarah Cha'
+date: March 16, 2018
+output: pdf_document
+---
+
+```{r}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+# Process Pre-Survey Data
+
+```{r}
+# Load the data
+data <- read.csv("UCBerkeley TV Habits Study Pre-Survey_March 12, 2018_16.42_CLEAN.csv")
+
+# Remove extraneous columns and rename remaining columns
+data <- data [,c(12,18:36)]
+colnames(data) <- c("linkedEmail", "enteredEmail", "gender", "age", "region", "employment", "maritalStatus", "children", "hoursTV", "binge", "primaryChannel", "allMethods", "moreTimeThanWanted", "watchAlone", "shareProfile", "netflixDays", "netflixHours", "netflixMin", "netflixAccountAndChrome", "source")
+
+# Generate factors for all multiple choice columns
+for (i in c(3:8,10:11,13:15,19)){
+  data[,i] <- factor(data[,i])
+}
+# Label answers
+levels(data$gender)=c("male", "female")
+levels(data$age)=c("21-","22-34","35-44","45-54","55-64","65+")[as.numeric(levels(data$age))]
+levels(data$region)=c("midwest", "northeast", "southeast","southwest","west","outsideUS")[as.numeric(levels(data$region))]
+levels(data$employment)=c("full","part","looking","unemployed","student","retired","homemaker","self","unable")[as.numeric(levels(data$employment))]
+levels(data$maritalStatus)=c("single","married","widowed","divorced","Separated")[as.numeric(levels(data$maritalStatus))]
+levels(data$children)=c("yes","no")[as.numeric(levels(data$children))]
+levels(data$binge)=c("once a week","once a month","once every couple months","once a year","no")[as.numeric(levels(data$binge))]
+levels(data$primaryChannel)=c("netflix","HBO","hulu","amazon","youtube","cable","other")[as.numeric(levels(data$primaryChannel))]
+levels(data$moreTimeThanWanted)=c("once a year","couple times a year","once a month","couple times a month","once a week")[as.numeric(levels(data$moreTimeThanWanted))]
+levels(data$watchAlone)=c("alone","withOthers")[as.numeric(levels(data$watchAlone))]
+levels(data$shareProfile)=c("yes","no")[as.numeric(levels(data$shareProfile))]
+levels(data$netflixAccountAndChrome)=c("both", "noNetflix","noChrome")[as.numeric(levels(data$netflixAccountAndChrome))]
+
+summary(data)
+```
+
+
+# Randomize treatment
+```{r}
+
+# Simple random assignment (treat=1 mean it is in the treatment group)
+# set seed so that results of random process are reproducible
+set.seed(840227)
+data$treat <- sample(c(1,0), size = nrow(data), replace = TRUE)
+summary(data$treat)
+
+```
+
+
+# Covariate balance check
+```{r}
+
+# Statistical F-test
+model <- lm(treat ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=data)
+
+summary(model)
+# Checking F-stat and p-value. Null hypothesis is that the coefficients are jointly equal to 0
+# If we reject the null, then variables are jointly significant
+```
+
+```{r}
+# Additionally, examine levels of key covariates by treatment/control
+
+se_diff_means <- function(treatment, control) {
+  round(sqrt(sd(control)^2/length(control) + sd(treatment)^2/length(treatment)),2)
+}
+
+# hours of TV
+t1 <- round(mean(data$hoursTV[data$treat==1]),2)
+c1 <- round(mean(data$hoursTV[data$treat==0]),2)
+diff1 <- t1-c1
+se1 <- se_diff_means(data$hoursTV[data$treat==1],data$hoursTV[data$treat==0])
+
+# male
+t2 <- round(mean(data$gender[data$treat==1]=="male"),2)
+c2 <- round(mean(data$gender[data$treat==0]=="male"),2)
+diff2 <- t2-c2
+se2 <- se_diff_means(as.numeric(data$gender[data$treat==1]=="male"),as.numeric(data$gender[data$treat==0]=="male"))
+
+
+# Put into a table for display
+d <- data.frame(variable = c("hours TV", "male"), 
+                control = c(t1, t2), 
+                treatment = c(c1, c2),
+                diff = c(diff1, diff2),
+                se = c(se1, se2) )
+knitr::kable(d)
+
+```

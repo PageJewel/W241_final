@@ -1,0 +1,517 @@
+---
+title: "TV Watching Habits Study"
+author: "Cameron Bell, Alyssa Eisenberg, Sarah Cha"
+date: "4/6/2018"
+output: pdf_document
+abstract: "Television is consumed through a growing number of channels today (cable, streaming networks like Hulu, Amazon, Netflix, and Youtube) while increasingly the mould for what looks like television is becoming more fluid (e.g. video clips on Youtube). We suspect some individuals don't actually realize how much television they're watching on a daily basis and we set out to understand how social pressures around television watching would alter or impact individual behavior. In our study, we randomly assigned treatment emails to half of the participants that highlights how much their peers are watching TV on average. XXX"
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
+```
+
+```{r, include=FALSE} 
+library(data.table) 
+library(lmtest)
+library(ggplot2)
+``` 
+
+Nielsen Total Audience report for the fourth quarter of 2016 discussed the steady trend of decline in live TV watching alongside increased use of smartphones to view video and the increasing penetration of subscription video on demand. While live viewing decreased to 4 hours and 23 minutes a day among adults 18 years and up (from 4 hours and 27 minutes in the prior year), smartphone usage rose to 2 hours and 32 minutes a day from 1 hour and 15 minutes a year ago. Needless to say, individuals are consuming video content in more formats today and given the rate at which online and on-demand content is growing, consumers can access endless amount content right at their fingertips. This points to a trend of increased video/screen watching and if Americans are watching more TV, we're curious to understand how can we change TV watching habits. 
+
+We set up an experimental study where we randomly assigned treatment emails to half of the participants that summarizes how much their peers are watching television on average. We wanted to understand if social/peer pressure has the ability to impact how much television a person watches (e.g. "Wow, my peers are watching only 2 hours of TV a week and I'm watching at least 10. Shame on me."). We begin by discussing the experimental design we developed to test whether social pressures/influence can actually impact individual behavior as it relates to TV watching. Next, we discuss audience for our experiment, the nature and frequency of the treatment, and our outcome measures. Statistical analysis from our study suggests that XXXXXXX taking into account non-compliance and attrition aspects of the experiment. We conclude by discussing the implications for generalizability to a broader population at large and future potential avenues for exploration.
+
+##Experimental Design
+
+Our aim was to develop a means for studying the influence of social pressures on TV watching, recognizing that the means by which Americans consume TV is very diverse today (cable, online video streaming, YouTube, etc) and what people classify as television can vary quite a bit (e.g. television shows, news, sports, movies, YouTube clips, etc). We hypothesized that when we carefully defined what we classify as "television" watching and participants could compare apples to apples their consumption vs. peers, they'd be impacted if their peers were watching less than they were. 
+
+We decided on surveys as the means by which we would collect all the necessary information including outcome measures from our participants. Our experiment consisted of two surveys - one pre and one post treatment - where we would measure pre-survey TV behavior for all participants along with what we thought could be key covariates of interest (age, gender, marital/employment status, etc) and then we'd randomly assign individuals to treatment vs. control where the individuals in the treatment group would be aware of how much their peers were watching. We could then calculate an average treatment effect by comparing the TV consumption of the two groups. 
+
+In designing our study, we were very mindful of how to maximize participation to get a large enough sample size, get accurate reportings, and how we could extract the most information in the least intrusive way. On the latter, conversations with our peers made us realize that there was clearly a balance between incentives for participants and the time commitment involved. We offered 5 Amazon gift cards for $20 each as a reward for participating, with the stipulation that participants had to complete a 3 minute pre-survey and a 1 minute post-survey in order to be entered into the drawing. 
+
+*Subjects*
+In an ideal scenario,  we would survey a large sample of the US adult population in order to get a representative sample for our experiment but with the key constraint being time and resources (we have only about 10 weeks and $500), we implemented a much more limited study where we, ourselves, were tasked with finding our respondents by word of mouth and social media but we leverage the power calculation give us a strong confidence that if there were a statistically significant result, we'd be able to detect it with the size of the data (n= number of participants) and the potential effect size. 
+
+We canvassed coffee shops and college campuses and put up flyers on social media to get participants. From our power calculation we knew we wanted around 80-100 individuals when it was all said and done but also knew we'd get a high level of attrition between the time we recruited the subjects to the time that the post-surveys were due. Even though we used different methods of outreach including word of mouth, social media, and email, we tried to put together a standardized pitch with key talking points to ensure that all three of us were giving out the same details about the experiment and that more importantly none of us in the process to giving too much detail on what we were aiming to do/analyze to avoid participants skewing their answers. Here is the standardized pitch:
+
+```{r}
+##fix!!
+png(file="pitch.png",width=400,height=350)
+```
+  
+Initially we took down email addresses of all interested participants and then those participants were emailed a pre-survey that they had to fill out to be a part of the actual experiment. Just as with the pilot, the pre-survey asked all participants about their initial TV watching habits and covariates at the beginning of the experiment. Useful potential covariates included age, martial status, and pre-existing TV watching habits. 
+
+*Random assignment of treatment and controls*
+We used a random sampling to assign individuals to treatment control to ensure that we get not only a balanced number of individuals in the two groups (treatment & control) but that there's lower likelihood of selection bia present in the groups. This is however also dependent on the size of the sample as well. We perform covariance imbalance checks at before sending out the treatment emails to ensure that nothing has gone awry. 
+
+*Outcome Measures*
+We carefully define in our communication with participants what we consider to be TV consumption (cable, streaming online, Youtube videos, sports, movies) and ask survey respondents to estimate and record how much they watch. Another potential option was to create a Chrome Netflix extension that would track all Netflix usage an individual had if they installed it and then the individual could input the numbers directly in the survey at the end of the survey period. We anticipated that attrition could be a potential problem with the set-up the survey given with pre-survey and treatment emails respondents could probably take a pretty good guess at what outcome measure we were most interested in while individuals at the core of what we want to study (ie. individuals who watch a lot of TV and whether or not they are influenced by treatment emails) could become most discouraged from continuing to participant through to the end. In an effort to entice individuals to be willing participants in our survey, we offered five $20 Amazon gift cards with the stipulation that both the pre and post survey needed to be filled out and completed on-time in order to be entered into the drawing. 
+
+
+##Pilot Study
+From that we had a good framework to start with and we implemented a pilot study with 9 individuals to start that would help identify what potential problems with the design could be and also serve as a good reference point for a power calculation that would help us understand how many subjects we needed in order to draw an actual treatment effect if there was one. The pilot took place over the course of 1 week (Feb 26 - Mar 4) where friends and family took answered a pre-survey, were randomly assigned to control or treatment, treatment group was sent an email about peer usage, and then everyone filled out a post-survey on their TV consumption. 
+
+
+*The pre-survey consisted of the following questions:*
+
+>1. Provide us with an email address that will be used to contact you throughout the course of this survey.
+>2. Are you male or female?
+>3. How old are you?
+>4. What region do you currently live in?
+>5. What is your current employment status?
+>6. What is your marital status
+>7. Do you have children under the age of 18?
+>8. How much television do you watch on a weekly basis? This includes cable, online streaming, Youtube, and can consist of movies, tv shows, and video clips.
+>9. Do you tend to binge watch TV shows (more than 4 hours of consecutive TV watching)?
+>10. What is your primary method of watching television?
+>11. Check off all the ways in which you consume television - Netflix, HBO, Hulu, Amazon, Youtube, Cable, Other.
+>12. How often do you find that after watching television you spent more time on it than you would have liked to?
+>13. Do you tend to watch television alone or with others?
+>14. Do you share your Netflix profile with someone else?
+>15. A link to installing the Netflix Chrome instruction as well as a text box for inputting what the extension outputs as usage over the last two week.  
+
+
+**Summary of pilot pre-survey results:**
+
+1. 8 of 9 individuals filled out the pre-survey in the designated time. Given the quick turnaround time (2 days), we expected some level of non-response as work, travel, etc can get in the way. 
+
+2. of the 8 individuals who did respond, 5 were Female and 3 male; 7 of the 8 were in the 22-34 age group, 7 of the 8 were in the Northeast region, 7 of 8 were full-time employed; 6 of 8 were married and 2 were single; and none of the 8 individuals had children under the age of 18.
+
+3. At the mid-point of the ranges, individuals in the pilot reported watching 7.75 hours of TV a week. Netflix was the primary method of watching TV for half of the individuals while cable and other were the primary method for the other half while 7 of the 8 individuals said they consumed television through Netflix. 
+
+4. 3 of 8 individuals were unable to install the extension either because they don't have a Netflix account or they don't use Chrome as their web browser. Of the individuals that did input a reading from the extension, the average Netflix consumption over the prior two weeks was 787.2 minutes or just over 13 hours of TV.  
+
+
+Over the next couple of days individuals randomly assigned to the treatment group were sent an email with a bar chart showing peer consumption trends while those in the control group did not receive any email. Then all 8 individuals were asked to fill out a *post-survey* that consisted of the following questions:
+
+>1. Provide us with your email address. This is the same identifier you used on the first survey and how we have been contacting you.
+>2. How much television did you watch during the study period from Feb 28 through March 1, inclusive? This includes cable, online streaming, and YouTube, and can consist of movies, tv shows, and video clips.
+>3. Input the time reading from your Chrome Netflix extension.  
+
+
+**What we learned from the pilot:**
+
+1. Attrition is likely to be high. Of the 9 close family and friends that we targeted for the survey, we needed up with full obervation sets for only 7 of 9. Of course the short observation time had an impact in the case of the pilot.
+
+2. At least for our pilot study, the quality of the data coming out of the Chrome extension reading was low - 3 of 7 individuals had 0 or NA output even though they indicated they watched TV during that time. 
+
+3. We emailed the pre- and post-surveys out via Qualtrics with the sender name as "UCBerkeley TV Habits Study" but the treatment email came from Alyssa's gmail, raising the question if this created confusion and/or potential for individuals to ignore Alyssa's emails (non-compliance).
+
+4. We ran a power calculation from the results of the pilot survey. From the simulation we ran, we would need a treatment effect of around -4 hours/week to find a statistically significant result 80% of the time with 80 observations. If we assume pre-experiment TV watching is related to post-experiment TV watching, using this covariate would reduce our standard error and could thus help our power calculation - 80% of the time we would find a statistically significant result for about half the treatment effect (-2 hours/week).
+
+
+**Calculating Power**
+
+*Base Case*  
+
+First, create the base case where we are running a simple t-test on difference in means between treatment and control, and the treatment effect is constant for everyone. Use the mean and variance from the pilot pre-survey for self-reported TV since the Netflix data was minimal. Since the pilot was so short, we did not get a good estimate of the treatment effect. Instead, run across a variety of treatment effects and check the power value.
+
+```{r}
+individual_simulation <- function(
+  units, mean_control, sd_control, tau) {
+  ## units is our sample size
+  ## mean_control is the mean TV watched with no treatment
+  ## sd_control is the standard deviation in TV watched with no treatment
+  ## tau is the treatment effect (change in amount of TV for treatment)
+  
+  ## Assume simple randomization among all units with 50% probability of treatment
+  urn <- c('treat', 'control')
+  d <- data.table(id = 1:units)
+  d[ , condition := sample(urn, size = .N, replace = TRUE)]
+  
+  ## Assumes a normal distribution of potential outcome to control
+  ## Mean and SD are supplied to function
+  ## Assumes a constant treatment effect across all participants
+  d[ , Y0 := pmax(rep(0, units),rnorm(units,mean=mean_control, sd = sd_control))]
+  d[ , Y1 := pmax(rep(0, units),Y0 + tau)]
+  d[condition == 'control' , outcome := Y0]
+  d[condition == 'treat' , outcome := Y1]
+  
+  res <- list(
+  'pvalue' = d[ , t.test(outcome ~ condition)$p.value],
+  'tau' = tau, 
+  'baseline_mean' = d[condition == 'control', mean(outcome)],
+  'baseline_n'    = d[condition == 'control', .N],
+  'alt_mean'      = d[condition == 'treat', mean(outcome)], 
+  'alt_n'         = d[condition == 'treat', .N],
+  'df_n'          = d[ , .N],
+  'ate'           = d[condition == 'treat', mean(outcome)] - d[condition == 'control', mean(outcome)]
+  )
+
+  return(res)
+  }
+```
+
+
+If you want to, simulate with particular input values.
+
+```{r} 
+# Simulate experiment many times for particular input values
+# calculate % of cases where results are statistically significant at 5% level
+results <- replicate(1000, individual_simulation(80, 8.6, 6.25, -1), simplify = FALSE)
+results <- rbindlist(results)
+power <- results[ , mean(pvalue < 0.05)]
+power
+``` 
+
+From the simulation below, we see that we would need a treatment effect of around -4.0 hrs/week in order to find a statistically significant result in 80% of cases.
+
+```{r}
+# Allow treatment effect to vary and run many simulated experiments
+# Note this takes several minutes to run
+moving_tau <- seq(from=-1, to= -4, by=-.1)
+
+results <- replicate(10000, 
+                     individual_simulation(80, 8.6, 6.25, sample(moving_tau, size = 1)),
+                     simplify = FALSE)
+results <- rbindlist(results)
+results$sig <- as.numeric(results$pvalue<0.05)
+
+# Calculate power at each treatment effect level and plot them
+results_agg <- aggregate(sig ~ tau, FUN=mean, data=results)
+plot(sig ~ tau, data=results_agg,
+     ylab="power",
+     main = "Power by Treatment Effect Size")
+
+```
+
+*Covariate Case*  
+
+Now, we are assuming that pre-experiment average time watching TV will be highly correlated with post-experiment weekly time spent watching TV, our outcome. Using this as a covariate should reduce our SE and provide more power, so we will run a t-test on a regression including this covariate. We will make the same assumptions for our pre-experiment values as we made in the base case for our potential outcomes to control. Then, we will assume that each individuals potential outcomes to control are normally distributed with mean of that individuals TV prior to experiment, and a SD value provided as an input. We will test against several values of this SD since we have no data for it.
+
+```{r}
+individual_simulation_covariate <- function(
+  units, mean_control, sd_control, tau, sd_individual) {
+  ## units is our sample size
+  ## mean_control is the mean TV watched prior to experiment
+  ## sd_control is the standard deviation in TV watched prior to experiment
+  ## tau is the treatment effect (change in amount of TV for treatment)
+  ## sd_individual is the SD for an individuals weekly TV watched with no treatment
+  
+  ## Assume simple randomization among all units with 50% probability of treatment
+  urn <- c('treat', 'control')
+  d <- data.table(id = 1:units)
+  d[ , condition := sample(urn, size = .N, replace = TRUE)]
+  d[ , treated := as.numeric(condition == "treat")]
+  
+  ## Assumes a normal distribution of pre-experiment avg weekly TV
+  ## Mean and SD are supplied to function
+  ## Assumes each individual has a normal distribution centered on their pre-experiment value
+  ## Assumes a constant treatment effect across all participants
+  d[ , preTV := pmax(rep(0, units),rnorm(units,mean=mean_control, sd = sd_control))]
+  d[ , Y0 := pmax(rep(0, units),rnorm(units,mean=preTV, sd = sd_individual))]
+  d[ , Y1 := pmax(rep(0, units),Y0 + tau)]
+  d[condition == 'control' , outcome := Y0]
+  d[condition == 'treat' , outcome := Y1]
+
+  ## Run a regression including preTV as a covariate
+  model <- lm(outcome ~ treated + preTV, data=d)
+  
+  res <- list(
+  'pvalue' = coeftest(model)[2,4],
+  'tau' = tau, 
+  'sd_individual' = sd_individual,
+  'baseline_n'    = d[condition == 'control', .N],
+  'alt_n'         = d[condition == 'treat', .N],
+  'df_n'          = d[ , .N],
+  'ate'           = unname(model$coefficients[2])
+  )
+
+  return(res)
+  }
+```
+
+
+If you want to, simulate with particular input values.
+
+```{r} 
+# Simulate experiment many times for particular input values
+# calculate % of cases where results are statistically significant at 5% level
+results <- replicate(1000, individual_simulation_covariate(80, 8.6, 6.25, -1, 1), simplify = FALSE)
+results <- rbindlist(results)
+power <- results[ , mean(pvalue < 0.05)]
+power
+``` 
+
+From the simulation below, we can see the combinations of individual standard deviation in amount of TV watched per week and treatment effect in order to find a statistically significant result in 80% of cases. For example, if the individual SD was about half that of the overall population (3), we would need a treatment effect of -2 hrs/week to have 80% power.
+
+```{r}
+# Allow treatment effect and sd_individual to vary and run many simulated experiments
+# Note this takes over ten minutes to run
+moving_tau <- seq(from=-1, to= -4, by=-.1)
+moving_sd_individual <- seq(from=1, 5, by=0.2)
+
+results <- replicate(50000, 
+                     individual_simulation_covariate(80, 8.6, 6.25, sample(moving_tau, size = 1), sample(moving_sd_individual, size=1)),
+                     simplify = FALSE)
+results <- rbindlist(results)
+results$sig <- as.numeric(results$pvalue<0.05)
+
+# Calculate power at each treatment effect level and plot them
+results_agg <- aggregate(sig ~ tau + sd_individual, FUN=mean, data=results)
+results_agg$over80 <- factor(as.numeric(results_agg$sig>=0.8))
+
+ggplot(results_agg, aes(x=tau, y=sd_individual)) +
+  geom_raster(aes(fill = sig)) +  scale_fill_gradientn(colours = rev(terrain.colors(10))) + 
+  ggtitle("Power Level by Treatment Effect Size and Individual SD")
+
+ggplot(results_agg, aes(x=tau, y=sd_individual, color=over80)) +
+  geom_point() + 
+  ggtitle("Power Over 80% by Treatment Effect Size and Individual SD")
+
+```
+
+##The Real Experiment  
+
+*Adjusting the design for the real experiment*
+
+Using the takeaways from the pilot study, we adjusted the design for our experiment to incorporate more optional language around the Chrome Netflix extension. Learning that the quality of the data received through the extension output during the pilot wasn't quite what we had hoped, made us realize we didn't want to make installation of that extension and its output such a strong requirement. We also created a gmail account with the same title as the Qualtric email sender which is "UCBerkeley TV Habits Study." Finally, we incorporated more time in the timeline for both gathering participants (to increase the power of the experiment) but also to give individuals ample time to fill out both the pre- and post-survey in order to maximize the inference ability of the experiment. This is the timeline we worked with:  
+
+>Mar 8-11 - gather participants  
+>Mar 12 - send out pre-survey early in the morning  
+>Mar 15 - close pre-survey, randomize intervention, and covariance imbalance check  
+>Mar 18 - treatment/control email [completed 11pm EST]  
+>Apr 2 - start final data collection  
+>Apr 6 - end final data collection  
+>Apr 7 - start data analysis  
+
+We gathered 136 email addresses of potential participants of which 42 came from BYU, 38 from social media websites like Facebook and Instagram, 37 from UCBerkeley Slack, and 19 friends of Alyssa, Cameron, and Sarah. There was about 40% attrition thereafter as 83 of the 136 individuals filled out the pre-survey for the experiment. 
+
+
+## Processing the Pre-Survey Data ##
+
+```{r}
+# Load the data
+data <- read.csv("UCBerkeley_TV_Habits_Study_Pre-Survey_March_2018_13.01_CLEAN.csv.csv")
+
+# Remove extraneous columns and rename remaining columns
+data <- data [,c(12,18:36)]
+colnames(data) <- c("linkedEmail", "enteredEmail", "gender", "age", "region", "employment", "maritalStatus", "children", "hoursTV", "binge", "primaryChannel", "allMethods", "moreTimeThanWanted", "watchAlone", "shareProfile", "netflixDays", "netflixHours", "netflixMin", "netflixAccountAndChrome", "source")
+
+# Generate factors for all multiple choice columns
+for (i in c(3:8,10:11,13:15,19)){
+  data[,i] <- factor(data[,i])
+}
+# Label answers
+levels(data$gender)=c("male", "female")
+levels(data$age)=c("21-","22-34","35-44","45-54","55-64","65+")[as.numeric(levels(data$age))]
+levels(data$region)=c("midwest", "northeast", "southeast","southwest","west","outsideUS")[as.numeric(levels(data$region))]
+levels(data$employment)=c("full","part","looking","unemployed","student","retired","homemaker","self","unable")[as.numeric(levels(data$employment))]
+levels(data$maritalStatus)=c("single","married","widowed","divorced","Separated")[as.numeric(levels(data$maritalStatus))]
+levels(data$children)=c("yes","no")[as.numeric(levels(data$children))]
+levels(data$binge)=c("once a week","once a month","once every couple months","once a year","no")[as.numeric(levels(data$binge))]
+levels(data$primaryChannel)=c("netflix","HBO","hulu","amazon","youtube","cable","other")[as.numeric(levels(data$primaryChannel))]
+levels(data$moreTimeThanWanted)=c("once a year","couple times a year","once a month","couple times a month","once a week")[as.numeric(levels(data$moreTimeThanWanted))]
+levels(data$watchAlone)=c("alone","withOthers")[as.numeric(levels(data$watchAlone))]
+levels(data$shareProfile)=c("yes","no")[as.numeric(levels(data$shareProfile))]
+levels(data$netflixAccountAndChrome)=c("both", "noNetflix","neither", "noChrome")
+
+summary(data)
+```
+
+
+# Randomize treatment
+```{r}
+
+# Simple random assignment (treat=1 mean it is in the treatment group)
+# set seed so that results of random process are reproducible
+set.seed(569320)
+data$treat <- sample(c(1,0), size = nrow(data), replace = TRUE)
+summary(data$treat)
+
+```
+
+
+# Covariate balance check
+```{r}
+
+# Statistical F-test
+model <- lm(treat ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=data)
+
+summary(model)
+# Checked F-stat and p-value. Null hypothesis is that the coefficients are jointly equal to 0
+# We cannot reject the null that the variables are jointly insignificant
+```
+
+```{r}
+# Additionally, examine levels of key covariates by treatment/control
+
+se_diff_means <- function(treatment, control) {
+  round(sqrt(sd(control)^2/length(control) + sd(treatment)^2/length(treatment)),2)
+}
+
+# hours of TV
+t1 <- round(mean(data$hoursTV[data$treat==1]),2)
+c1 <- round(mean(data$hoursTV[data$treat==0]),2)
+diff1 <- t1-c1
+se1 <- se_diff_means(data$hoursTV[data$treat==1],data$hoursTV[data$treat==0])
+
+# male
+t2 <- round(mean(data$gender[data$treat==1]=="male"),2)
+c2 <- round(mean(data$gender[data$treat==0]=="male"),2)
+diff2 <- t2-c2
+se2 <- se_diff_means(as.numeric(data$gender[data$treat==1]=="male"),as.numeric(data$gender[data$treat==0]=="male"))
+
+# marital status = married
+t3 <- round(mean(data$maritalStatus[data$treat==1]=="married"),2)
+c3 <- round(mean(data$maritalStatus[data$treat==0]=="married"),2)
+diff3 <- t3-c3
+se3 <- se_diff_means(as.numeric(data$maritalStatus[data$treat==1]=="married"),as.numeric(data$maritalStatus[data$treat==0]=="married"))
+
+# no children
+t4 <- round(mean(data$children[data$treat==1]=="no"),2)
+c4 <- round(mean(data$children[data$treat==0]=="no"),2)
+diff4 <- t4-c4
+se4 <- se_diff_means(as.numeric(data$children[data$treat==1]=="no"),as.numeric(data$children[data$treat==0]=="no"))
+
+# moreTimeThanWanted: couple times a year
+t5 <- round(mean(data$moreTimeThanWanted[data$treat==1]=="couple times a year"),2)
+c5 <- round(mean(data$moreTimeThanWanted[data$treat==0]=="couple times a year"),2)
+diff5 <- t5-c5
+se5 <- se_diff_means(as.numeric(data$moreTimeThanWanted[data$treat==1]=="couple times a year"),as.numeric(data$moreTimeThanWanted[data$treat==0]=="couple times a year"))
+
+# moreTimeThanWanted: once a month
+t6 <- round(mean(data$moreTimeThanWanted[data$treat==1]=="once a month"),2)
+c6 <- round(mean(data$moreTimeThanWanted[data$treat==0]=="once a month"),2)
+diff6 <- t6-c6
+se6 <- se_diff_means(as.numeric(data$moreTimeThanWanted[data$treat==1]=="once a month"),as.numeric(data$moreTimeThanWanted[data$treat==0]=="once a month"))
+
+# moreTimeThanWanted: couple times a month
+t7 <- round(mean(data$moreTimeThanWanted[data$treat==1]=="couple times a month"),2)
+c7 <- round(mean(data$moreTimeThanWanted[data$treat==0]=="couple times a month"),2)
+diff7 <- t7-c7
+se7 <- se_diff_means(as.numeric(data$moreTimeThanWanted[data$treat==1]=="couple times a month"),as.numeric(data$moreTimeThanWanted[data$treat==0]=="couple times a month"))
+
+# moreTimeThanWanted: once a week
+t8 <- round(mean(data$moreTimeThanWanted[data$treat==1]=="once a week"),2)
+c8 <- round(mean(data$moreTimeThanWanted[data$treat==0]=="once a week"),2)
+diff8 <- t8-c8
+se8 <- se_diff_means(as.numeric(data$moreTimeThanWanted[data$treat==1]=="once a week"),as.numeric(data$moreTimeThanWanted[data$treat==0]=="once a week"))
+
+
+# Put into a table for display
+d <- data.frame(variable = c("hours TV", "male", "married", "no children", "watched more than wanted: couple times a year", "watched more than wanted: once a month", "watched more than wanted: couple times a month", "watched more than wanted: once a week"), 
+                control = c(t1, t2, t3, t4, t5, t6, t7, t8), 
+                treatment = c(c1, c2, c3, c4, c5, c6, c7, c8),
+                diff = c(diff1, diff2, diff3, diff4, diff5, diff6, diff7, diff8),
+                se = c(se1, se2, se3, se4, se5, se6, se7, se8) )
+knitr::kable(d)
+
+```
+
+
+Finally, output the treatment assignments along with emails.
+``` {r}
+output_data = data[,c("linkedEmail", "treat")]
+head(output_data)
+
+write.csv(output_data, file = "ExperimentTreatmentAssignment.csv")
+
+```
+
+```{r}
+#load the survey data
+survey_data <- read.csv("UCBerkeleyTVHabitsStudyPost-Survey_April2018CLEAN.csv")
+survey_data$Q3_1 <- as.numeric(survey_data$Q3_1)
+survey_data$Q3_2 <- as.numeric(survey_data$Q3_2)
+survey_data$Q3_3 <- as.numeric(survey_data$Q3_3)
+
+#first just pull the relevant columns from survey data
+cols <- c(12, 18:24)
+sub.data <- survey_data[ ,cols]
+sub.data$Finished<- 1 #add a variable for if they finished the post-survey
+colnames(sub.data)=c("linkedEmail", "post_survey_ID", "reportedhrs_P", "netflixDays_P", "netflixHours_P", "netflixMin_P","Treated", "Finished" )
+
+#join the pre-survey & survey data set using emails
+all_data <- merge(data, sub.data, by="linkedEmail", all=TRUE)
+all_data$Finished <- ifelse(is.na(all_data$Finished), 0, 1)
+all_data$Assigned <- all_data$treat
+all_data[ ,-21]
+```
+
+```{r}
+#Post-survey questions
+str(all_data)
+#Self-reported TV watching
+t9 <- round(mean(all_data$reportedhrs[all_data$Assigned==1 & all_data$Finished==1], na.rm=T),2)
+c9 <- round(mean(all_data$reportedhrs[all_data$Assigned==0 & all_data$Finished==1], na.rm=T),2)
+diff9 <- t9-c9
+se9 <- se_diff_means(as.numeric(complete.cases(all_data$reportedhrs[all_data$Assigned==1])),as.numeric(complete.cases(all_data$reportedhrs[all_data$Assigned==0])))
+
+#Netflix extension readings
+all_data$NFLXreading <- (all_data$netflixDays_P*24) + all_data$netflixHours_P + (all_data$netflixMin_P/60)
+t10 <- round(mean(all_data$NFLXreading[all_data$Assigned==1], na.rm=T),2)
+c10 <- round(mean(all_data$NFLXreading[all_data$Assigned==0], na.rm=T),2)
+diff10 <- t10-c10
+se10 <- se_diff_means(as.numeric(complete.cases(all_data$NFLXreading[all_data$Assigned==1])),as.numeric(complete.cases(all_data$NFLXreading[all_data$Assigned==0])))
+
+#Received treatment email
+#recode Yes = 1, No = 0, Blank/NA = NA
+levels(all_data$Treated) <- c("Yes", "No", "")
+all_data$Treated <- as.numeric(all_data$Treated)
+all_data$Treated[is.na(all_data$Treated)] <- 0
+all_data$Treated <- ifelse(all_data$Treated == 3, 1, 0)
+all_data$Treated
+
+#% of assigned that were actually treated
+compl <- round(mean(all_data$Treated[all_data$Assigned == 1]), 2) #compliance rate is low --> 36% of those assigned to treatment actually said they saw the treatment email
+compl2 <- round(mean(all_data$Treated[(all_data$Assigned == 1) & (all_data$Finished == 1)]), 2) #actually 43% b/c need to exclude attrited individuals
+compl
+compl2
+```
+
+```{r}
+# Put into a table for display
+outcomes <- data.frame(variable = c("Self-ReportedTV", "NetflixExt"), 
+                control = c(c9, c10), 
+                treatment = c(t9, t10),
+                diff = c(diff9, diff10),
+                se = c(se9, se10))
+knitr::kable(outcomes)
+```
+
+**Summary of initial findings**
+
+*Why are the netflix readings so much bigger than the self-reported #s?*
+
+```{r fig.height = 4, fig.width = 6, message=FALSE, warning=FALSE}
+library(ggplot2)
+hours_watched <- all_data[ , c("reportedhrs_P", "NFLXreading")]
+
+t <- hours_watched %>%
+  gather(key, value)
+
+ggplot(t, aes(x = value, color = key)) + 
+  geom_histogram(fill="white", alpha=0.5, position="identity")
+  
+```
+
+*Attrition*
+```{r fig.width = 5}
+attrit_cases <- all_data[all_data$Finished == 0 ,]
+ggplot(attrit_cases, aes (x=Assigned)) +
+  geom_histogram(binwidth = 0.5, fill="darkblue", col="grey") +
+  scale_x_continuous(breaks = seq(0,1,1)) +
+  ggtitle("Comparing attrition for control(0) vs. treatment (1)")
+
+#percent attrition by assignment
+xtabs(~ Finished + Assigned, data=all_data)
+round(prop.table(xtabs(~ Finished + Assigned, data=all_data)),2)
+
+attrit_by_assigned <- lm(Finished ~ Assigned, data=all_data)
+summary(attrit_by_assigned)
+
+attrit_covariate_check <- lm(Assigned ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=all_data[all_data$Finished == 1 ,])
+
+summary(attrit_covariate_check)
+```
+
+**Model Building**
+
+
+***Findings**
+
+
+
+
+
