@@ -531,7 +531,7 @@ ggplot(all_data) +
 ```
 
 
-Below is a model using all of the variables that seemed to be noteworthy from our exploratory data analysis. Interestingly the only statistically significant variable (at a p-value of 5% or less) was the pre-survey TV hours.
+Below is a model using all of the variables that seemed to be noteworthy from our exploratory data analysis. Interestingly the only statistically significant variable (at a p-value of 5% or less) was the pre-survey TV hours. The treatment effect was -0.27 suggesting a small decrease in TV watching for the treatment groupu but it was not statistically significant. 
 
 ```{r message=FALSE}
 all_data$married = ifelse(all_data$maritalStatus == "married", 1, 0)
