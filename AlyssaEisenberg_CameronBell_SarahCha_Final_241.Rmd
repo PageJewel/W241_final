@@ -20,7 +20,6 @@ library(dplyr)
 library(reshape)
 library(corrplot)
 library(stargazer)
-
 ``` 
 
 Nielsen Total Audience report for the fourth quarter of 2016 discussed the steady trend of decline in live TV watching alongside increased use of smartphones to view video and the increasing penetration of subscription video on demand. While live viewing decreased to 4 hours and 23 minutes a day among adults 18 years and up (from 4 hours and 27 minutes in the prior year), smartphone usage rose to 2 hours and 32 minutes a day from 1 hour and 15 minutes a year ago. Needless to say, individuals are consuming video content in more formats today and given the rate at which online and on-demand content is growing, consumers can access endless amount content right at their fingertips. This points to a trend of increased video/screen watching and could mean that consumers are watching more TV than they actually realize. As a result, we're curious to understand if we could change TV watching habits if we focused the attention on how many hours people are watching vs. their peers. 
