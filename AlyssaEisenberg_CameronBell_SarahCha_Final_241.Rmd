@@ -442,6 +442,67 @@ ggplot(t, aes(x = value, color = key)) +
   
 ```
 
+The below shows us that there were only 5 participants who used the netflix extension and do not share a profile. This is simply not enough data, so it was unusable.
+
+```{r}
+all_data$extension <- is.na(as.numeric(all_data$netflixMin))
+NFmod <- lm(reportedhrs_P/2 ~ Assigned + source + NFLXreading + extension, data=all_data[all_data$shareProfile=="no",])
+summary(NFmod)
+
+hist(na.omit(all_data$NFLXreading[all_data$shareProfile=="no"]))
+```
+
+In the below plots we see that participating in the study did not affect the control group or the non-compliers in treatment.
+Though we recognize that asking the participants in the final survey if they ever received the treatment email acts as a poor proxy for identifying compliers, it allows us to calculate some somewhat-useful values for alpha and CACE (see below). We control for the only statistically significant covariate, previous hours/week.
+
+```{r}
+boxplot(all_data$reportedhrs_P[all_data$Assigned==0]/2,
+        all_data$hoursTV[all_data$Assigned==0],
+        names=c('After', 'Before'), main='Hours Watched (Control)', xlab='Hours of TV Watched per Week',
+        ylim=c(0,40), horizontal=T)
+
+boxplot(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated==1]/2,
+        all_data$hoursTV[all_data$Assigned==1 & all_data$Treated==1],
+        all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated!=1]/2,
+        all_data$hoursTV[all_data$Assigned==1 & all_data$Treated!=1],
+        names=c('After', 'Before', 'After', 'Before'), main='Hours Watched (Treatment) per Week', xlab='Hours of TV Watched', ylab="Compliers            Non-Compliers",
+        ylim=c(0,40), horizontal=T)
+
+# The below section considers before/after analysis for compliers and non-compliers,
+# which produces an inaccurate view.
+# BNC <- na.omit(all_data$hoursTV[all_data$Assigned==1 & all_data$Treated!=1])
+# BC <- na.omit(all_data$hoursTV[all_data$Assigned==1 & all_data$Treated==1])
+# ANC <- na.omit(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated!=1]/2)
+# AC <- na.omit(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated==1]/2)
+# print("ATE for Non-Compliers:")
+# (ATENC <- mean(ANC)-mean(BNC))
+# print("ATE for Compliers:")
+# (ATEC <- mean(AC)-mean(BC))
+
+print("Overall ATE:")
+(ATE <- lm(reportedhrs_P/2 ~ Assigned + hoursTV, all_data)$coefficients[2])
+print("Alpha (rate of compliance):")
+(alpha <- length(all_data$hoursTV[all_data$Assigned==1 & all_data$Treated==1]) / length(all_data$hoursTV[all_data$Assigned==1]))
+print("CACE:")
+(CACE <- ATE/alpha)
+```
+
+When we create the full model, we see that the only statistically significant covariates are hoursTV, which tells us the hours of TV watched per week previous to the study, and source, where we found the study participant. Below we discuss a few heterogeneous treatment effects we expected to see (but did not), and the treatment effect itself:
+Assigned: This is the variable that indicates assignment to treatment. There was no statistically significant  effect of receiving treatment as a whole.
+Treated: Reporting that a participant was a complier also had no effect.
+Assigned*Treated: We also saw no effect for the interaction term.
+We suspect that source (online/social media) may reflect a statistically significant heterogeneous treatment effect because it ts as a better proxy than Treated for identifying compliers. those who joined the study after recruitment on social media are likely close friends of those conducting the study and were more likely to pay attention to the process.
+extension: We expected to see that those who had installed the Chrome extension would have been shocked by how much Netflix they were watching (we were!) and reduced their watching habits due to that observation alone. However, there was no such effect.
+first_quartile: Similar to the OPower study, we expected that those who already watch very little TV would be the least affected by the study. However, there was no such statistically significant effect (likely because the treatment itself was not statistically significant).
+
+```{r}
+all_data$first_quartile <- all_data$hoursTV < quantile(all_data$hoursTV, 0.25)
+m <- lm(reportedhrs_P/2 ~ Assigned * Treated + gender + age + region + employment + maritalStatus + children + binge + watchAlone + shareProfile + source + hoursTV + extension + first_quartile, all_data[all_data$Finished==1,])
+stargazer(m, type='text', omit=c('region', 'age', 'employment', 'maritalStatus', 'binge', 'children', 'Constant'), omit.stat=c('rsq', 'adj.rsq', 'f'))
+```
+
+
+
 **Attrition**
 We witnessed high levels of attrition through out the experiment, starting with 136 potential participants and ending up with 65 actually completing both pre and post surveys. From the time the participants were assigned to treatment and control groups, we saw 17% attrition in the treatment group and 23% in the control. When we regressed completion on treatment group, we found there was so statistical evidence to suggest that attrition was related to treatment group (p-value of .475). Further, ex-ante covariate balance check fails to reject null of no joint significance of covariates predicting treatment assignment.  
 

@@ -1,0 +1,21 @@
+{
+  "manifest_version": 2,
+
+  "name": "Netflix Tracker",
+  "description": "This extension reports how much Netflix has been watched.",
+  "version": "1.0.6",
+  
+  "content_scripts": [{
+     "js": ["jquery-3.3.1.min.js", "popup.js"],
+	 "matches": ["http://*/*", "https://*/*"]
+   }],
+
+  "browser_action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "activeTab",
+    "storage"
+  ]
+}
