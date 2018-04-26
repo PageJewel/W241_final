@@ -145,7 +145,7 @@ We recruited on college campuses and posted on social media to get participants.
 
 Initially we took down email addresses of all interested participants. There were 136 email addresses of potential participants of which 42 came from BYU, 38 from social media websites like Facebook and Instagram, 37 from UCBerkeley Slack, and 19 friends of Alyssa, Cameron, and Sarah.
 
-Everyone on that list was emailed a pre-survey that they had to fill out to be a part of the actual experiment. Just as with the pilot, the pre-survey asked all participants about their initial TV watching habits and covariates at the beginning of the experiment. Useful potential covariates included age, martial status, and pre-existing TV watching habits. There was about 40% drop out rate with only 81 of the 136 individuals filling out the pre-survey by the deadline for the experiment (another 2 completed the survey after treatment/control was already randomized).
+Everyone on that list was emailed a pre-survey that they had to fill out to be a part of the actual experiment. Just as with the pilot, the pre-survey asked all participants about their initial TV watching habits and covariates at the beginning of the experiment. Useful potential covariates included age, martial status, and pre-existing TV watching habits. There was about 40% drop out rate with only 81 of the 136 individuals filling out the pre-survey by the deadline for the experiment (another 2 completed the survey after treatment/control was already randomized). For the full flow of participants through the experiment, please see the Appendix.
 
 **Random assignment of treatment and controls**
 
@@ -281,6 +281,13 @@ all_data$Finished <- ifelse(is.na(all_data$Finished), 0, 1)
 all_data$Assigned <- all_data$treat
 all_data <- all_data[ ,-21]
 
+#Clean manipulation check data - question asking users whether they remember receiving bar chart in email
+#recode Yes = 1, No = 0, Blank/NA = NA
+levels(all_data$Treated) <- c("Yes", "No", "")
+all_data$Treated <- as.numeric(all_data$Treated)
+all_data$Treated[is.na(all_data$Treated)] <- 0
+all_data$Treated <- ifelse(all_data$Treated == 3, 1, 0)
+
 #clean Netflix data
 all_data$NFLXreading <- (all_data$netflixDays_P*24) + all_data$netflixHours_P + (all_data$netflixMin_P/60)
 all_data$extension <- is.na(as.numeric(all_data$netflixMin)) #indicates whether used extension in pre-survey
@@ -302,80 +309,57 @@ pct_sharing <- length(na.omit(all_data$NFLXreading[all_data$shareProfile=="no"])
 
 ##Results
 
+**Attrition**
+We witnessed high levels of attrition through out the experiment, ending up with 65 participants completing the post survey from 81 who were assigned into treatment vs. control. From the time the participants were assigned to treatment and control groups, we saw 17% attrition in the treatment group and 23% in the control. 
 
-```{r}
-#Self-reported TV watching
-t9 <- round(mean(all_data$reportedhrs[all_data$Assigned==1 & all_data$Finished==1], na.rm=T),2)
-c9 <- round(mean(all_data$reportedhrs[all_data$Assigned==0 & all_data$Finished==1], na.rm=T),2)
-diff9 <- t9-c9
-se9 <- se_diff_means(as.numeric(complete.cases(all_data$reportedhrs[all_data$Assigned==1])),as.numeric(complete.cases(all_data$reportedhrs[all_data$Assigned==0])))
+Beyond examining direct attrition rates, we ran two tests for differential attrition and found no evidence to suggest that attrition differed based on treatment group. When we regressed completion on treatment group, we found that the coefficient on treatment assignment was not significant with a p-value of .475. Further, an ex-ante covariate balance check fails to reject null of no joint significance of covariates predicting treatment assignment with a p-value of 0.7853 (see Appendix for full results).  
 
-#Netflix extension readings
-t10 <- round(mean(all_data$NFLXreading[all_data$Assigned==1], na.rm=T),2)
-c10 <- round(mean(all_data$NFLXreading[all_data$Assigned==0], na.rm=T),2)
-diff10 <- t10-c10
-se10 <- se_diff_means(as.numeric(complete.cases(all_data$NFLXreading[all_data$Assigned==1])),as.numeric(complete.cases(all_data$NFLXreading[all_data$Assigned==0])))
+```{r results='asis', echo=FALSE}
+#count attrition by assignment
+xtabs(~ Finished + Assigned, data=all_data)
 
-#Received treatment email
-#recode Yes = 1, No = 0, Blank/NA = NA
-levels(all_data$Treated) <- c("Yes", "No", "")
-all_data$Treated <- as.numeric(all_data$Treated)
-all_data$Treated[is.na(all_data$Treated)] <- 0
-all_data$Treated <- ifelse(all_data$Treated == 3, 1, 0)
-all_data$Treated
+attrit_by_assigned <- lm(Finished ~ Assigned, data=all_data)
+stargazer(attrit_by_assigned, header=F, type="text")
 
-#% of assigned that were actually treated
-compl <- round(mean(all_data$Treated[all_data$Assigned == 1]), 2) #compliance rate is low --> 36% of those assigned to treatment actually said they saw the treatment email
-compl2 <- round(mean(all_data$Treated[(all_data$Assigned == 1) & (all_data$Finished == 1)]), 2) #actually 43% b/c need to exclude attrited individuals
-compl
-compl2
+attrit_covariate_check <- lm(Assigned ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=all_data[all_data$Finished == 1 ,])
 ```
 
-```{r}
-# Put into a table for display
-outcomes <- data.frame(variable = c("Self-ReportedTV", "NetflixExt"), 
-                control = c(c9, c10), 
-                treatment = c(t9, t10),
-                diff = c(diff9, diff10),
-                se = c(se9, se10))
-knitr::kable(outcomes)
-```
+**Summary of initial findings: IN PROGRESS(ALYSSA)**
 
-**Summary of initial findings**
+The below plots show the distribution of amount of TV watched before and after for several groups: control participants, treatment participants who reported not receiving the email with the treatment bar chart, and treatment participants who reported receiving the email with the treatment bar chart. While this maninipulation check is not perfect since 
 
 In the below plots we see that participating in the study did not affect the control group or the non-compliers in treatment.
 Though we recognize that asking the participants in the final survey if they ever received the treatment email acts as a poor proxy for identifying compliers, it allows us to calculate some somewhat-useful values for alpha and CACE (see below). We control for the only statistically significant covariate, previous hours/week.
 
-```{r}
+```{r echo=FALSE}
+# control before and after
+#note that we exclude pre-survey responses from people who later attrited
 boxplot(all_data$reportedhrs_P[all_data$Assigned==0]/2,
-        all_data$hoursTV[all_data$Assigned==0],
+        all_data$hoursTV[all_data$Assigned==0 & all_data$Finished == 1],
         names=c('After', 'Before'), main='Hours Watched (Control)', xlab='Hours of TV Watched per Week',
         ylim=c(0,40), horizontal=T)
 
+```
+
+```{r echo=FALSE}
+#treatment before and after, split by manipulation check
+#note that we exclude pre-survey responses from people who later attrited
 boxplot(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated==1]/2,
-        all_data$hoursTV[all_data$Assigned==1 & all_data$Treated==1],
+        all_data$hoursTV[all_data$Assigned==1 & all_data$Treated==1 & all_data$Finished == 1],
         all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated!=1]/2,
-        all_data$hoursTV[all_data$Assigned==1 & all_data$Treated!=1],
+        all_data$hoursTV[all_data$Assigned==1 & all_data$Treated!=1 & all_data$Finished == 1],
         names=c('After', 'Before', 'After', 'Before'), main='Hours Watched (Treatment) per Week', xlab='Hours of TV Watched', ylab="Compliers            Non-Compliers",
         ylim=c(0,40), horizontal=T)
 
-# The below section considers before/after analysis for compliers and non-compliers,
-# which produces an inaccurate view.
-# BNC <- na.omit(all_data$hoursTV[all_data$Assigned==1 & all_data$Treated!=1])
-# BC <- na.omit(all_data$hoursTV[all_data$Assigned==1 & all_data$Treated==1])
-# ANC <- na.omit(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated!=1]/2)
-# AC <- na.omit(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated==1]/2)
-# print("ATE for Non-Compliers:")
-# (ATENC <- mean(ANC)-mean(BNC))
-# print("ATE for Compliers:")
-# (ATEC <- mean(AC)-mean(BC))
+# CACE analysis
+lm(reportedhrs_P/2 ~ Assigned + hoursTV, all_data)$coefficients[2]
 
-print("Overall ATE:")
-(ATE <- lm(reportedhrs_P/2 ~ Assigned + hoursTV, all_data)$coefficients[2])
-print("Alpha (rate of compliance):")
-(alpha <- length(all_data$hoursTV[all_data$Assigned==1 & all_data$Treated==1]) / length(all_data$hoursTV[all_data$Assigned==1]))
-print("CACE:")
-(CACE <- ATE/alpha)
+round(mean(all_data$reportedhrs_P[all_data$Assigned==0]/2, na.rm=T),2) #8.74
+round(mean(all_data$hoursTV[all_data$Assigned==0 & all_data$Finished == 1]),2) #8.22
+
+ATE <- lm(reportedhrs_P/2 ~ Assigned + hoursTV, all_data)$coefficients[2]
+alpha <- mean(all_data$Treated[(all_data$Assigned == 1) & (all_data$Finished == 1)])
+CACE <- ATE/alpha
 ```
 
 When we create the full model, we see that the only statistically significant covariates are hoursTV, which tells us the hours of TV watched per week previous to the study, and source, where we found the study participant. Below we discuss a few heterogeneous treatment effects we expected to see (but did not), and the treatment effect itself:
@@ -390,32 +374,6 @@ first_quartile: Similar to the OPower study, we expected that those who already 
 all_data$first_quartile <- all_data$hoursTV < quantile(all_data$hoursTV, 0.25)
 m <- lm(reportedhrs_P/2 ~ Assigned * Treated + gender + age + region + employment + maritalStatus + children + binge + watchAlone + shareProfile + source + hoursTV + extension + first_quartile, all_data[all_data$Finished==1,])
 stargazer(m, type='text', omit=c('region', 'age', 'employment', 'maritalStatus', 'binge', 'children', 'Constant'), omit.stat=c('rsq', 'adj.rsq', 'f'))
-```
-
-
-
-**Attrition**
-We witnessed high levels of attrition through out the experiment, starting with 136 potential participants and ending up with 65 actually completing both pre and post surveys. From the time the participants were assigned to treatment and control groups, we saw 17% attrition in the treatment group and 23% in the control. When we regressed completion on treatment group, we found there was so statistical evidence to suggest that attrition was related to treatment group (p-value of .475). Further, ex-ante covariate balance check fails to reject null of no joint significance of covariates predicting treatment assignment.  
-
-```{r fig.width = 5}
-attrit_cases <- all_data[all_data$Finished == 0 ,]
-ggplot(attrit_cases, aes (x=Assigned)) +
-  geom_histogram(binwidth = 0.5, fill="darkblue", col="grey") +
-  scale_x_continuous(breaks = seq(0,1,1)) +
-  ggtitle("Comparing attrition for control(0) vs. treatment (1)")
-
-#percent attrition by assignment
-xtabs(~ Finished + Assigned, data=all_data)
-round(prop.table(xtabs(~ Finished + Assigned, data=all_data)),2)
-
-attrit_by_assigned <- lm(Finished ~ Assigned, data=all_data)
-stargazer(attrit_by_assigned, header=F)
-
-attrit_covariate_check <- lm(Assigned ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=all_data[all_data$Finished == 1 ,])
-```
-
-```{r echo=FALSE, fig.cap="Flow Diagram for Participants", out.width = '100%'}
-knitr::include_graphics("flow.png")
 ```
 
 **Model Building**
@@ -540,6 +498,24 @@ knitr::include_graphics("pitch.png")
 
 \newpage
 
+**The experiment timeline**   
+
+>Mar 8-11 - gather participants  
+>Mar 12 - send out pre-survey early in the morning  
+>Mar 15 - close pre-survey, randomize intervention, and covariance imbalance check  
+>Mar 18 - treatment/control email [completed 11pm EST]  
+>Apr 2 - start final data collection  
+>Apr 6 - end final data collection  
+>Apr 7 - start data analysis 
+
+\newpage
+
+```{r echo=FALSE, fig.cap="Flow Diagram for Participants", out.width = '100%'}
+knitr::include_graphics("flow.png")
+```
+
+\newpage
+
 ```{r echo=FALSE, fig.cap="Sample Control email", out.width = '100%'}
 knitr::include_graphics("control.png")
 ```
@@ -552,20 +528,9 @@ knitr::include_graphics("treatment.png")
 
 \newpage
 
-**The experiment timeline**   
->Mar 8-11 - gather participants  
->Mar 12 - send out pre-survey early in the morning  
->Mar 15 - close pre-survey, randomize intervention, and covariance imbalance check  
->Mar 18 - treatment/control email [completed 11pm EST]  
->Apr 2 - start final data collection  
->Apr 6 - end final data collection  
->Apr 7 - start data analysis  
-
-\newpage
-
 **Covariate balance check model results**
 
-```{r results='asis'}
+```{r results='asis', echo=FALSE}
 stargazer(cov_balance_check1, attrit_covariate_check, 
           column.labels=c("Initial", "Post-attrition"),
           header=F, no.space=TRUE)
