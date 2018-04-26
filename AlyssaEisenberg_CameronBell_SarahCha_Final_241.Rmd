@@ -22,6 +22,7 @@ library(dplyr)
 library(reshape)
 library(corrplot)
 library(stargazer)
+library(gridExtra)
 ``` 
 
 ##Introduction
@@ -72,7 +73,7 @@ Since the pilot was so short, we did not get a good estimate of the treatment ef
 
 First, we ran this analysis using the pilot mean and variance for pre-experiment hours of TV (7.6 and 5.25 respectively). We found that for 100 participants and an individual SD of 2.5, we would need a treatment effect of -1.5 hrs/week to have 80% power. We updated and re-ran this analysis after gathering the pre-survey data for the real experiment, leading to the chart below. Here we only use 80 participants, and the mean and variance for pre-experiment hours of TV from the pre-survey (8.6 and 6.25). If the individual SD was about half that of the overall population (3), we would need a treatment effect of -2 hrs/week to have 80% power.
 
-```{r echo=FALSE}
+```{r fig.height= 3.5, echo=FALSE}
 individual_simulation_covariate <- function(
   units, mean_control, sd_control, tau, sd_individual) {
   ## units is our sample size
@@ -257,12 +258,11 @@ knitr::kable(d)
 
 **Outcome Measures**  
 
-We carefully define in our communication with participants what we consider to be TV consumption (movies, tv shows, or video clips through cable, streaming online, or Youtube videos). Our primary outcome measure asks survey respondents to estimate and record how many hours they watched during the two weeks of the experiment.
+We carefully define in our communication with participants what we consider to be TV consumption (movies, tv shows, or video clips through cable, streaming online, or Youtube videos). Our primary outcome measure asks survey respondents to estimate and record how many hours they watched during the two weeks of the experiment. Please see the histogram below for the distribution of the responses, which is positively skewed with a max of around 80 hours in the two week period.
 
-For our secondary outcome measure, we created a Chrome Netflix extension that would track and display all Netflix usage an individual had during a set period for the individual to then input the numbers directly into the post-survey. The goal was to avoid measurement error from self-reporting due to issues in memory or miscounting. 
+For our secondary outcome measure, we created a Chrome Netflix extension that would track and display all Netflix usage an individual had during a set period for the individual to then input the numbers directly into the post-survey. The goal was to avoid measurement error from self-reporting due to issues in memory or miscounting. However, only 55% of final survey respondents included this information, and of those only 14% did not share their Netflix profile with another person. Since the extension sums all activity for a Netflix profile for the given period of time, that is how we see extremely high records of TV watched as can be seen in the histogram below (e.g., several people with over 150 hours in a two week period). These issues in the measurement make this data unusable for results analysis.
 
-
-```{r echo=FALSE}
+```{r fig.height=3.5, echo=FALSE, warning=FALSE}
 #load the survey data
 survey_data <- read.csv("UCBerkeleyTVHabitsStudyPost-Survey_April2018CLEAN.csv")
 survey_data$Q3_1 <- as.numeric(survey_data$Q3_1)
@@ -280,14 +280,30 @@ all_data <- merge(data, sub.data, by="linkedEmail", all=TRUE)
 all_data$Finished <- ifelse(is.na(all_data$Finished), 0, 1)
 all_data$Assigned <- all_data$treat
 all_data <- all_data[ ,-21]
+
+#clean Netflix data
+all_data$NFLXreading <- (all_data$netflixDays_P*24) + all_data$netflixHours_P + (all_data$netflixMin_P/60)
+all_data$extension <- is.na(as.numeric(all_data$netflixMin)) #indicates whether used extension in pre-survey
+
+#Plot outcome distributions
+g1 <- ggplot(all_data[all_data$Finished==1,], aes(reportedhrs_P)) + geom_histogram(bins=30) +
+  ggtitle("Hist of Self-Reported Hours")
+g2 <- ggplot(all_data[all_data$Finished==1,], aes(NFLXreading)) + geom_histogram(bins=30) +
+  ggtitle("Hist of Netflix Hours")
+grid.arrange(g1,g2, ncol=2)
+
+#Netflix usage stats
+#pct of final surveys that provided Netflix data
+pct_NFLX <- length(na.omit(all_data$NFLXreading)) / sum(all_data$Finished==1)
+#pct of final surveys providing Netflix data who did not share a Netflix profile
+pct_sharing <- length(na.omit(all_data$NFLXreading[all_data$shareProfile=="no"])) /
+  length(na.omit(all_data$NFLXreading))
 ```
 
 ##Results
 
 
 ```{r}
-#Post-survey questions
-str(all_data)
 #Self-reported TV watching
 t9 <- round(mean(all_data$reportedhrs[all_data$Assigned==1 & all_data$Finished==1], na.rm=T),2)
 c9 <- round(mean(all_data$reportedhrs[all_data$Assigned==0 & all_data$Finished==1], na.rm=T),2)
@@ -295,7 +311,6 @@ diff9 <- t9-c9
 se9 <- se_diff_means(as.numeric(complete.cases(all_data$reportedhrs[all_data$Assigned==1])),as.numeric(complete.cases(all_data$reportedhrs[all_data$Assigned==0])))
 
 #Netflix extension readings
-all_data$NFLXreading <- (all_data$netflixDays_P*24) + all_data$netflixHours_P + (all_data$netflixMin_P/60)
 t10 <- round(mean(all_data$NFLXreading[all_data$Assigned==1], na.rm=T),2)
 c10 <- round(mean(all_data$NFLXreading[all_data$Assigned==0], na.rm=T),2)
 diff10 <- t10-c10
@@ -327,30 +342,6 @@ knitr::kable(outcomes)
 ```
 
 **Summary of initial findings**
-
-*Why are the netflix readings so much bigger than the self-reported #s?*
-
-```{r fig.height = 4, fig.width = 6, message=FALSE, warning=FALSE}
-
-hours_watched <- all_data[ , c("reportedhrs_P", "NFLXreading")]
-
-t <- hours_watched %>%
-  gather(key, value)
-
-ggplot(t, aes(x = value, color = key)) + 
-  geom_histogram(fill="white", alpha=0.5, position="identity")
-  
-```
-
-The below shows us that there were only 5 participants who used the netflix extension and do not share a profile. This is simply not enough data, so it was unusable.
-
-```{r}
-all_data$extension <- is.na(as.numeric(all_data$netflixMin))
-NFmod <- lm(reportedhrs_P/2 ~ Assigned + source + NFLXreading + extension, data=all_data[all_data$shareProfile=="no",])
-summary(NFmod)
-
-hist(na.omit(all_data$NFLXreading[all_data$shareProfile=="no"]))
-```
 
 In the below plots we see that participating in the study did not affect the control group or the non-compliers in treatment.
 Though we recognize that asking the participants in the final survey if they ever received the treatment email acts as a poor proxy for identifying compliers, it allows us to calculate some somewhat-useful values for alpha and CACE (see below). We control for the only statistically significant covariate, previous hours/week.
@@ -418,11 +409,9 @@ xtabs(~ Finished + Assigned, data=all_data)
 round(prop.table(xtabs(~ Finished + Assigned, data=all_data)),2)
 
 attrit_by_assigned <- lm(Finished ~ Assigned, data=all_data)
-summary(attrit_by_assigned)
+stargazer(attrit_by_assigned, header=F)
 
 attrit_covariate_check <- lm(Assigned ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=all_data[all_data$Finished == 1 ,])
-
-summary(attrit_covariate_check)
 ```
 
 ```{r echo=FALSE, fig.cap="Flow Diagram for Participants", out.width = '100%'}
@@ -543,8 +532,6 @@ Our study on TV watching behavior was ultimately inconclusive as there were no s
 
 4. 3 of 8 individuals were unable to install the extension either because they don't have a Netflix account or they don't use Chrome as their web browser. Of the individuals that did input a reading from the extension, the average Netflix consumption over the prior two weeks was 787.2 minutes or just over 13 hours of TV.  
 
-Over the next couple of days individuals randomly assigned to the treatment group were sent an email with a bar chart showing peer consumption trends while those in the control group did not receive any email. Then all 8 individuals were asked to fill out a *post-survey* on how much TV they watched during the pilot period.  
-
 \newpage
   
 ```{r echo=FALSE, fig.cap="Standardized pitch", out.width = '100%'}
@@ -579,6 +566,7 @@ knitr::include_graphics("treatment.png")
 **Covariate balance check model results**
 
 ```{r results='asis'}
-stargazer(cov_balance_check1)
-
+stargazer(cov_balance_check1, attrit_covariate_check, 
+          column.labels=c("Initial", "Post-attrition"),
+          header=F, no.space=TRUE)
 ```
