@@ -1,17 +1,19 @@
 ---
 title: "TV Watching Habits Study"
 author: "Cameron Bell, Alyssa Eisenberg, Sarah Cha"
-date: "4/6/2018"
+date: "4/26/2018"
 output: pdf_document
 abstract: "Television is consumed through a growing number of channels today (cable, streaming networks like Hulu, Amazon, Netflix, and Youtube) while increasingly the mould for what looks like television is becoming more fluid (e.g. video clips on Youtube). We suspect some individuals don't actually realize how much television they're watching on a daily basis and we set out to understand how social pressures around television watching would alter or impact individual behavior. In our study, we randomly assigned treatment emails to half of the participants that highlights how much their peers are watching TV on average. XXX"
 ---
 
 ```{r setup, include=FALSE}
+# Tidy up any code printed in pdf
 library(knitr)
 opts_chunk$set(tidy.opts=list(width.cutoff=60),tidy=TRUE)
 ```
 
-```{r, include=FALSE} 
+```{r, include=FALSE}
+# Load libraries
 library(data.table) 
 library(lmtest)
 library(ggplot2)
@@ -22,111 +24,55 @@ library(corrplot)
 library(stargazer)
 ``` 
 
-Nielsen Total Audience report for the fourth quarter of 2016 discussed the steady trend of decline in live TV watching alongside increased use of smartphones to view video and the increasing penetration of subscription video on demand. While live viewing decreased to 4 hours and 23 minutes a day among adults 18 years and up (from 4 hours and 27 minutes in the prior year), smartphone usage rose to 2 hours and 32 minutes a day from 1 hour and 15 minutes a year ago. Needless to say, individuals are consuming video content in more formats today and given the rate at which online and on-demand content is growing, consumers can access endless amount content right at their fingertips. This points to a trend of increased video/screen watching and could mean that consumers are watching more TV than they actually realize. As a result, we're curious to understand if we could change TV watching habits if we focused the attention on how many hours people are watching vs. their peers. 
+##Introduction
 
-We set up an experimental study where we randomly assigned treatment emails to half of the participants that summarizes how much their peers are watching television on average. We wanted to understand if social/peer pressure has the ability to impact how much television a person watches (e.g. "Wow, my peers are watching only 2 hours of TV a week and I'm watching at least 10. Shame on me."). We begin by discussing the experimental design we developed to test whether social pressures/influence can actually impact individual behavior as it relates to TV watching. Next, we discuss audience for our experiment, the nature and frequency of the treatment, and our outcome measures. Statistical analysis from our study suggests that XXXXXXX taking into account non-compliance and attrition aspects of the experiment. We conclude by discussing the implications for generalizability to a broader population at large and future potential avenues for exploration.
+Nielsen Total Audience report for the fourth quarter of 2016 discussed the steady trend of decline in live TV watching alongside increased use of smartphones to view video and the increasing penetration of subscription video on demand. While live viewing decreased to 4 hours and 23 minutes a day among adults 18 years and up (from 4 hours and 27 minutes in the prior year), smartphone usage rose to 2 hours and 32 minutes a day from 1 hour and 15 minutes a year ago. Needless to say, individuals are consuming video content in more formats today and given the rate at which online and on-demand content is growing, consumers can access an endless amount of content right at their fingertips. This points to a trend of increased video/screen watching and could mean that consumers are watching more TV than they actually realize or desire. 
+
+In other contexts, it has been found that providing peer comparisons can cause changes in people's behavior. For example, in the Opower study by Ian Ayres, Sophie Raseman, and Alice Shih, they find that providing mailed peer feedback reports resulted in reductions in energy consumption. We are interested in whether a similar mechanism can be applied to the new context of TV watching habits. 
+
+We set up an experimental study where we randomly assigned treatment emails to half of the participants that summarizes how much their peers are watching television on average. We wanted to understand if social/peer pressure has the ability to impact how much television a person watches (e.g. "Wow, my peers are watching only 2 hours of TV a week and I'm watching at least 10. Shame on me."). 
+
+We begin by discussing the high level experimental design we developed to test whether social pressures/influence can actually impact individual behavior as it relates to TV watching, including changes based on an initial pilot study. Next, we discuss the details of our real experiment - the participants, the nature and frequency of the treatment, and our outcome measures. Statistical analysis from our study suggests that XXXXXXX taking into account non-compliance and attrition aspects of the experiment. We conclude by discussing the implications for generalizability to a broader population at large and future potential avenues for exploration.
 
 ##Experimental Design
 
-Our aim was to develop a means for studying the influence of social pressures on TV watching, recognizing that the means by which Americans consume TV is very diverse today (cable, online video streaming, YouTube, etc) and what people classify as television can vary quite a bit (e.g. television shows, news, sports, movies, YouTube clips, etc). We hypothesized that when we carefully defined what we classify as "television" watching and participants could compare apples to apples their consumption vs. peers, they'd be impacted if their peers were watching less than they were. We also hypothesized that we'd see heterogeneous treatment effect from our participants based on amount of TV watched prior to experiment (ie. those in 1st quartile not likely to reduce amount of TV and may actually increase instead).  
+Our aim was to develop a means for studying the influence of social pressures on TV watching, recognizing that the means by which Americans consume TV is very diverse today (cable, online video streaming, YouTube, etc) and what people classify as television can vary quite a bit (e.g. television shows, news, sports, movies, YouTube clips, etc). We hypothesized that when we carefully defined what we classify as "television" watching and participants could compare apples to apples their consumption vs. peers, they'd be impacted if their peers were watching less than they were. We also hypothesized that we'd see heterogeneous treatment effect from our participants based on amount of TV watched prior to experiment (ie. those in 1st quartile are not likely to reduce their amount of TV and may actually see an increase instead).  
 
-We decided on surveys as the means by which we would collect all the necessary information including outcome measures from our participants. Our experiment consisted of two surveys - one pre and one post treatment - where we would measure pre-survey TV behavior for all participants along with what we thought could be key covariates of interest (age, gender, marital/employment status, etc) and then we'd randomly assign individuals to treatment vs. control where the individuals in the treatment group would be aware of how much their peers were watching. Then for the actual calculation of treatment effect using the post-survey results we did a difference in difference comparison where we compare the hours of TV watched between treatment and control group for causal estimate conditioning on pre-experiment TV watching measure as a covariate. 
+We decided on surveys as the means by which we would collect all the necessary information including outcome measures from our participants. Our experimental design follows a difference in difference approach. Our experiment consisted of two surveys - one pre and one post treatment. In the pre-survey,  we would measure pre-survey TV behavior for all participants along with what we thought could be key covariates of interest (age, gender, marital/employment status, etc). Then we would randomly assign individuals to treatment vs. control, where the individuals in the treatment group would be aware of how much their peers were watching. The post-survey measures TV behavior during the experiment. This allows us to compare the hours of TV watched between treatment and control group for causal estimate conditioning on pre-experiment TV watching measure as a covariate.
 
-In designing our study, we were very mindful of how to maximize participation to get a large enough sample size, get accurate reportings, and how we could extract the most information in the least intrusive way. On the latter, conversations with our peers made us realize that there was clearly a balance between incentives for participants and the time commitment involved. We offered 5 Amazon gift cards for $20 each as a reward for participating, with the stipulation that participants had to complete a 3 minute pre-survey and a 1 minute post-survey in order to be entered into the drawing. 
+```{r echo=FALSE, fig.cap="Experimental Design", out.width = '100%'}
+knitr::include_graphics("design.png")
+```
+
+In designing our study, we were very mindful of how to maximize participation to get a large enough sample size, get accurate reportings, and how we could extract the most information in the least intrusive way. On the latter, conversations with our peers made us realize that there was clearly a balance between incentives for participants and the time commitment involved. We offered a drawing for 5 Amazon gift cards for $20 each as a reward for participating, with the stipulation that participants had to complete a 3 minute pre-survey and a 1 minute post-survey in order to be entered into the drawing. 
 
 **Pilot Study**
-From that we had a good framework to start with and we implemented a pilot study with 9 individuals to start that would help identify what potential problems with the design could be and also serve as a good reference point for a power calculation that would help us understand how many subjects we needed in order to draw an actual treatment effect if there was one. The pilot took place over the course of 1 week (Feb 26 - Mar 4) where friends and family took answered a pre-survey (see Appendix for full questionaire), were randomly assigned to control or treatment, treatment group was sent an email about peer usage, and then everyone filled out a post-survey on their TV consumption. 
 
-*Some highlights of what we learned from the pilot:*
+We implemented a pilot study with 9 individuals to test our initial design framework and help identify potential problems and inform our power analysis. The pilot took place over the course of 1 week (Feb 26 - Mar 4) where friends and family answered a pre-survey, were randomly assigned to control or treatment, treatment group was sent an email about peer usage, and then everyone filled out a post-survey on their TV consumption. See the Appendix for full questionaires.
 
-1. Attrition is likely to be high. Of the 9 close family and friends that we targeted for the survey, we needed up with full obervation sets for only 7 of 9. Of course the short observation time had an impact in the case of the pilot.
+*Learnings and adjustments in the experimental design:*
 
-2. At least for our pilot study, the quality of the data coming out of the Chrome extension reading was low - 3 of 7 individuals had 0 or NA output even though they indicated they watched TV during that time. 
+1. Attrition is likely to be high. Of the 9 close family and friends that we targeted for the survey, we ended up with full observation sets for only 7 of 9. Of course the short observation time had an impact in the case of the pilot. To reduce attrition as much as possible in order to maximize the inference ability of the experiment, we incorporated more time for individuals to fill out both the pre- and post-survey and planned to send several reminder emails emphasizing the Amazon gift card drawing for completing participation in the study.
 
-3. We emailed the pre- and post-surveys out via Qualtrics with the sender name as "UCBerkeley TV Habits Study" but the treatment email came from Alyssa's gmail, raising the question if this created confusion and/or potential for individuals to ignore Alyssa's emails (non-compliance).
+2. The quality of the data coming out of the Chrome extension reading was low - 3 of 7 individuals had 0 or NA output even though they indicated they watched TV during that time. This emphasized that we needed to incorporate more optional language around the Chrome Netflix extension. We didn't want to make installation of that extension and its output such a strong requirement with the fear that it would reduce our subject pool too severely. 
 
-4. We ran a power calculation from the results of the pilot survey. From the simulation we ran, we would need a treatment effect of around -4 hours/week to find a statistically significant result 80% of the time with 80 observations. If we assume pre-experiment TV watching is related to post-experiment TV watching, using this covariate would reduce our standard error and could thus help our power calculation - 80% of the time we would find a statistically significant result for about half the treatment effect (-2 hours/week).
+3. The data from the self-reported average amount of TV watched did not have much variability. This was in part due to the low number of participants, but also because the response options were a limited set of ranges of hours. This made the treatment less effective in showing variation, so we changed the question about pre-experiment self-reported TV to have participants enter their own value instead of selecting a radio button.
+
+4. We emailed the pre- and post-surveys out via Qualtrics with the sender name as "UCBerkeley TV Habits Study" but the treatment email came from Alyssa's gmail, raising the question if this created confusion and/or potential for individuals to ignore Alyssa's emails (non-compliance). To resolve this, we created a gmail account with the same title as the Qualtric email sender which is "UCBerkeley TV Habits Study."
 
 **Calculating Power**
 
-*Base Case*  
+The pilot also provided reference information for a power calculation that would help us understand what level of treatment effect we would be able to accurately identify. We ran a simulation regressing outcome TV on treatment and using the pre-experiment amount of TV watched as a covariate to reduce our SE and increase the power, and checked the proportion that found a statistically significant coefficient for treatment. We made the following simplifying assumptions for our simulation:
 
-First, we created a base case where we ran a simple t-test on difference in means between treatment and control, and the treatment effect is constant for everyone. Then we used the mean and variance from the pilot pre-survey for self-reported TV since the Netflix data was minimal. Since the pilot was so short, we did not get a good estimate of the treatment effect. Instead, run across a variety of treatment effects and check the power value.
+- set mean and variance for self-reported pre-experiment TV hours watched
+- each individuals potential outcomes to control are normally distributed with mean of that individuals TV prior to experiment, and a SD value provided as an input
+- treatment effect is constant for everyone
 
-```{r}
-individual_simulation <- function(
-  units, mean_control, sd_control, tau) {
-  ## units is our sample size
-  ## mean_control is the mean TV watched with no treatment
-  ## sd_control is the standard deviation in TV watched with no treatment
-  ## tau is the treatment effect (change in amount of TV for treatment)
-  
-  ## Assume simple randomization among all units with 50% probability of treatment
-  urn <- c('treat', 'control')
-  d <- data.table(id = 1:units)
-  d[ , condition := sample(urn, size = .N, replace = TRUE)]
-  
-  ## Assumes a normal distribution of potential outcome to control
-  ## Mean and SD are supplied to function
-  ## Assumes a constant treatment effect across all participants
-  d[ , Y0 := pmax(rep(0, units),rnorm(units,mean=mean_control, sd = sd_control))]
-  d[ , Y1 := pmax(rep(0, units),Y0 + tau)]
-  d[condition == 'control' , outcome := Y0]
-  d[condition == 'treat' , outcome := Y1]
-  
-  res <- list(
-  'pvalue' = d[ , t.test(outcome ~ condition)$p.value],
-  'tau' = tau, 
-  'baseline_mean' = d[condition == 'control', mean(outcome)],
-  'baseline_n'    = d[condition == 'control', .N],
-  'alt_mean'      = d[condition == 'treat', mean(outcome)], 
-  'alt_n'         = d[condition == 'treat', .N],
-  'df_n'          = d[ , .N],
-  'ate'           = d[condition == 'treat', mean(outcome)] - d[condition == 'control', mean(outcome)]
-  )
+Since the pilot was so short, we did not get a good estimate of the treatment effect and we have no data for individual SD for TV watched. Instead, we run across a variety of treatment effects and SD values and check the power for that combination of parameters.
 
-  return(res)
-  }
-```
+First, we ran this analysis using the pilot mean and variance for pre-experiment hours of TV (7.6 and 5.25 respectively). We found that for 100 participants and an individual SD of 2.5, we would need a treatment effect of -1.5 hrs/week to have 80% power. We updated and re-ran this analysis after gathering the pre-survey data for the real experiment, leading to the chart below. Here we only use 80 participants, and the mean and variance for pre-experiment hours of TV from the pre-survey (8.6 and 6.25). If the individual SD was about half that of the overall population (3), we would need a treatment effect of -2 hrs/week to have 80% power.
 
-
-If you want to, simulate with particular input values.
-
-```{r} 
-# Simulate experiment many times for particular input values
-# calculate % of cases where results are statistically significant at 5% level
-results <- replicate(1000, individual_simulation(80, 8.6, 6.25, -1), simplify = FALSE)
-results <- rbindlist(results)
-power <- results[ , mean(pvalue < 0.05)]
-power
-``` 
-
-From the simulation below, we see that we would need a treatment effect of around -4.0 hrs/week in order to find a statistically significant result in 80% of cases.
-
-```{r}
-# Allow treatment effect to vary and run many simulated experiments
-# Note this takes several minutes to run
-moving_tau <- seq(from=-1, to= -4, by=-.1)
-
-results <- replicate(10000, 
-                     individual_simulation(80, 8.6, 6.25, sample(moving_tau, size = 1)),
-                     simplify = FALSE)
-results <- rbindlist(results)
-results$sig <- as.numeric(results$pvalue<0.05)
-
-# Calculate power at each treatment effect level and plot them
-results_agg <- aggregate(sig ~ tau, FUN=mean, data=results)
-plot(sig ~ tau, data=results_agg,
-     ylab="power",
-     main = "Power by Treatment Effect Size")
-
-```
-
-*Covariate Case*  
-
-Now, we are assuming that pre-experiment average time watching TV will be highly correlated with post-experiment weekly time spent watching TV, our outcome. Using this as a covariate should reduce our SE and provide more power, so we will run a t-test on a regression including this covariate. We will make the same assumptions for our pre-experiment values as we made in the base case for our potential outcomes to control. Then, we will assume that each individuals potential outcomes to control are normally distributed with mean of that individuals TV prior to experiment, and a SD value provided as an input. We will test against several values of this SD since we have no data for it.
-
-```{r}
+```{r echo=FALSE}
 individual_simulation_covariate <- function(
   units, mean_control, sd_control, tau, sd_individual) {
   ## units is our sample size
@@ -165,24 +111,8 @@ individual_simulation_covariate <- function(
   )
 
   return(res)
-  }
-```
+}
 
-
-If you want to, simulate with particular input values.
-
-```{r} 
-# Simulate experiment many times for particular input values
-# calculate % of cases where results are statistically significant at 5% level
-results <- replicate(1000, individual_simulation_covariate(80, 8.6, 6.25, -1, 1), simplify = FALSE)
-results <- rbindlist(results)
-power <- results[ , mean(pvalue < 0.05)]
-power
-``` 
-
-From the simulation below, we can see the combinations of individual standard deviation in amount of TV watched per week and treatment effect in order to find a statistically significant result in 80% of cases. For example, if the individual SD was about half that of the overall population (3), we would need a treatment effect of -2 hrs/week to have 80% power.
-
-```{r}
 # Allow treatment effect and sd_individual to vary and run many simulated experiments
 # Note this takes over ten minutes to run
 moving_tau <- seq(from=-1, to= -4, by=-.1)
@@ -202,42 +132,28 @@ ggplot(results_agg, aes(x=tau, y=sd_individual)) +
   geom_raster(aes(fill = sig)) +  scale_fill_gradientn(colours = rev(terrain.colors(10))) + 
   ggtitle("Power Level by Treatment Effect Size and Individual SD")
 
-ggplot(results_agg, aes(x=tau, y=sd_individual, color=over80)) +
-  geom_point() + 
-  ggtitle("Power Over 80% by Treatment Effect Size and Individual SD")
-
 ```
-
-
-**Subjects**  
-
-In an ideal scenario,  we would survey a large sample of the US adult population in order to get a representative sample for our experiment but with the key constraint being time and resources (we have only about 10 weeks and $500), we implemented a much more limited study where we, ourselves, were tasked with finding our respondents by word of mouth and social media but we leverage the power calculation give us a strong confidence that if there were a statistically significant result, we'd be able to detect it with the size of the data (n= number of participants) and the potential effect size. 
-
-We canvassed coffee shops and college campuses and put up flyers on social media to get participants. From our power calculation we knew we wanted around 80-100 individuals when it was all said and done but also knew we'd get a high level of attrition between the time we recruited the subjects to the time that the post-surveys were due. Even though we used different methods of outreach including word of mouth, social media, and email, we tried to put together a standardized pitch with key talking points to ensure that all three of us were giving out the same details about the experiment and that more importantly none of us in the process to giving too much detail on what we were aiming to do/analyze to avoid participants skewing their answers. See appendix for the standardized pitch used. 
-
-Initially we took down email addresses of all interested participants and then those participants were emailed a pre-survey that they had to fill out to be a part of the actual experiment. Just as with the pilot, the pre-survey asked all participants about their initial TV watching habits and covariates at the beginning of the experiment. Useful potential covariates included age, martial status, and pre-existing TV watching habits. 
-
-**Random assignment of treatment and controls**
-
-In terms of randomization once we had our set list of participants from the pre-survey, we used a simple random assignment to get half of our subjects into control and the other half in treatment in an effort to prevent against any selection bias. For a check, we did a covariate balance check and found that the randomization had worked - there were no statistically significant differences between the control and treatment group nor did the F-test of joint significance return anything of significance. 
-
-**Outcome Measures**  
-
-We carefully define in our communication with participants what we consider to be TV consumption (cable, streaming online, Youtube videos, sports, movies) and ask survey respondents to estimate and record how much they watch. Another potential option was to create a Chrome Netflix extension that would track all Netflix usage an individual had if they installed it and then the individual could input the numbers directly in the survey at the end of the survey period. We anticipated that attrition could be a potential problem with the set-up the survey given with pre-survey and treatment emails respondents could probably take a pretty good guess at what outcome measure we were most interested in while individuals at the core of what we want to study (ie. individuals who watch a lot of TV and whether or not they are influenced by treatment emails) could become most discouraged from continuing to participant through to the end. In an effort to entice individuals to be willing participants in our survey, we offered five $20 Amazon gift cards with the stipulation that both the pre and post survey needed to be filled out and completed on-time in order to be entered into the drawing. 
 
 ##The Actual Experiment  
 
-*Adjusting the design for the real experiment*
+**Subjects**  
 
-Using the takeaways from the pilot study, we adjusted the design for our experiment to incorporate more optional language around the Chrome Netflix extension. Learning that the quality of the data received through the extension output during the pilot wasn't quite what we had hoped, made us realize we didn't want to make installation of that extension and its output such a strong requirement. We also created a gmail account with the same title as the Qualtric email sender which is "UCBerkeley TV Habits Study." Finally, we incorporated more time in the timeline for both gathering participants (to increase the power of the experiment) but also to give individuals ample time to fill out both the pre- and post-survey in order to maximize the inference ability of the experiment.
+In an ideal scenario,  we would survey a large sample of the US adult population in order to get a representative sample for our experiment. However, with the key constraints being time and resources (we have only about 10 weeks and $500), we implemented a much more limited study where we, ourselves, were tasked with finding our respondents by word of mouth and social media.
 
-We gathered 136 email addresses of potential participants of which 42 came from BYU, 38 from social media websites like Facebook and Instagram, 37 from UCBerkeley Slack, and 19 friends of Alyssa, Cameron, and Sarah. There was about 40% attrition thereafter as 83 of the 136 individuals filled out the pre-survey for the experiment. 
+We recruited on college campuses and posted on social media to get participants. We chose to limit participants to one per household to avoid problems with non-interference. Even though we used different methods of outreach including word of mouth, social media, and email, we used standardized pitch with key talking points. This ensured that all three of us were giving out the same details about the experiment and, more importantly, that none of us provided too much detail on what we were aiming to do/analyze to avoid participants skewing their answers. See appendix for the standardized pitch used.
 
+Initially we took down email addresses of all interested participants. There were 136 email addresses of potential participants of which 42 came from BYU, 38 from social media websites like Facebook and Instagram, 37 from UCBerkeley Slack, and 19 friends of Alyssa, Cameron, and Sarah.
 
-**Processing the Pre-Survey Data**
+Everyone on that list was emailed a pre-survey that they had to fill out to be a part of the actual experiment. Just as with the pilot, the pre-survey asked all participants about their initial TV watching habits and covariates at the beginning of the experiment. Useful potential covariates included age, martial status, and pre-existing TV watching habits. There was about 40% drop out rate with only 81 of the 136 individuals filling out the pre-survey by the deadline for the experiment (another 2 completed the survey after treatment/control was already randomized).
 
-```{r}
-# Load the data
+**Random assignment of treatment and controls**
+
+In terms of randomization once we had our set list of participants from the pre-survey, we used a simple random assignment to get half of our subjects into control and the other half in treatment in an effort to prevent against any selection bias. Those assigned to control received an email thanking them for their participation, while those in treatment received the same email with a chart comparing their amount of TV watched with their peers (see Appendix for examples).
+
+For a check on our randomization before sending these emails, we did a covariate balance check and found that the randomization had worked. There were no statistically significant differences between the control and treatment group on key variables. Also, the F-test of joint significance on a regression of treatment assignment on all our key covariates did not return anything of significance (p-value of 67%). For the full model results, see the Appendix.
+
+```{r echo=FALSE}
+# Load the pre-survey data and run cleaning steps
 data <- read.csv("UCBerkeley_TV_Habits_Study_Pre-Survey_March_2018_13.01_CLEAN.csv.csv")
 
 # Remove extraneous columns and rename remaining columns
@@ -262,36 +178,21 @@ levels(data$watchAlone)=c("alone","withOthers")[as.numeric(levels(data$watchAlon
 levels(data$shareProfile)=c("yes","no")[as.numeric(levels(data$shareProfile))]
 levels(data$netflixAccountAndChrome)=c("both", "noNetflix","neither", "noChrome")
 
-summary(data)
-```
-
-
-**Randomize treatment**  
-```{r}
 
 # Simple random assignment (treat=1 mean it is in the treatment group)
 # set seed so that results of random process are reproducible
 set.seed(569320)
 data$treat <- sample(c(1,0), size = nrow(data), replace = TRUE)
-summary(data$treat)
-
 ```
 
-
-**Covariate balance check**  
-```{r}
+```{r echo=FALSE}
+# Covariate balance check two ways
 
 # Statistical F-test
-model <- lm(treat ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=data)
+cov_balance_check1 <- lm(treat ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=data)
 
-summary(model)
-# Checked F-stat and p-value. Null hypothesis is that the coefficients are jointly equal to 0
-# We cannot reject the null that the variables are jointly insignificant
-```
 
-```{r}
 # Additionally, examine levels of key covariates by treatment/control
-
 se_diff_means <- function(treatment, control) {
   round(sqrt(sd(control)^2/length(control) + sd(treatment)^2/length(treatment)),2)
 }
@@ -352,20 +253,16 @@ d <- data.frame(variable = c("hours TV", "male", "married", "no children", "watc
                 diff = c(diff1, diff2, diff3, diff4, diff5, diff6, diff7, diff8),
                 se = c(se1, se2, se3, se4, se5, se6, se7, se8) )
 knitr::kable(d)
-
 ```
 
+**Outcome Measures**  
 
-Finally, output the treatment assignments along with emails.
-``` {r}
-output_data = data[,c("linkedEmail", "treat")]
-head(output_data)
+We carefully define in our communication with participants what we consider to be TV consumption (movies, tv shows, or video clips through cable, streaming online, or Youtube videos). Our primary outcome measure asks survey respondents to estimate and record how many hours they watched during the two weeks of the experiment.
 
-write.csv(output_data, file = "ExperimentTreatmentAssignment.csv")
+For our secondary outcome measure, we created a Chrome Netflix extension that would track and display all Netflix usage an individual had during a set period for the individual to then input the numbers directly into the post-survey. The goal was to avoid measurement error from self-reporting due to issues in memory or miscounting. 
 
-```
 
-```{r}
+```{r echo=FALSE}
 #load the survey data
 survey_data <- read.csv("UCBerkeleyTVHabitsStudyPost-Survey_April2018CLEAN.csv")
 survey_data$Q3_1 <- as.numeric(survey_data$Q3_1)
@@ -384,6 +281,9 @@ all_data$Finished <- ifelse(is.na(all_data$Finished), 0, 1)
 all_data$Assigned <- all_data$treat
 all_data <- all_data[ ,-21]
 ```
+
+##Results
+
 
 ```{r}
 #Post-survey questions
@@ -614,7 +514,7 @@ Our study on TV watching behavior was ultimately inconclusive as there were no s
 >3. How old are you?
 >4. What region do you currently live in?
 >5. What is your current employment status?
->6. What is your marital status
+>6. What is your marital status?
 >7. Do you have children under the age of 18?
 >8. How much television do you watch on a weekly basis? This includes cable, online streaming, Youtube, and can consist of movies, tv shows, and video clips.
 >9. Do you tend to binge watch TV shows (more than 4 hours of consecutive TV watching)?
@@ -623,8 +523,15 @@ Our study on TV watching behavior was ultimately inconclusive as there were no s
 >12. How often do you find that after watching television you spent more time on it than you would have liked to?
 >13. Do you tend to watch television alone or with others?
 >14. Do you share your Netflix profile with someone else?
->15. A link to installing the Netflix Chrome instruction as well as a text box for inputting what the extension outputs as usage over the last two week.  
+>15. A link to installing the Netflix Chrome instruction as well as a text box for inputting what the extension outputs as usage over the last two week. 
 
+**The post-survey in the pilot consisted of the following questions:**  
+
+>1. Provide us with your email address. This is the same identifier you used on the first survey and how we have been contacting you.
+>2. How much television did you watch during the study period from Feb 28 through March 1, inclusive? This includes cable, online streaming, and YouTube, and can consist of movies, tv shows, and video clips.
+>3. Input the time reading from your Chrome Netflix extension.   
+
+\newpage
 
 **Summary of pilot pre-survey takeaways:**  
 
@@ -638,27 +545,25 @@ Our study on TV watching behavior was ultimately inconclusive as there were no s
 
 Over the next couple of days individuals randomly assigned to the treatment group were sent an email with a bar chart showing peer consumption trends while those in the control group did not receive any email. Then all 8 individuals were asked to fill out a *post-survey* on how much TV they watched during the pilot period.  
 
-*The post-survey in the pilot consisted of the following questions:*  
-
->1. Provide us with your email address. This is the same identifier you used on the first survey and how we have been contacting you.
->2. How much television did you watch during the study period from Feb 28 through March 1, inclusive? This includes cable, online streaming, and YouTube, and can consist of movies, tv shows, and video clips.
->3. Input the time reading from your Chrome Netflix extension.   
-
-
+\newpage
   
 ```{r echo=FALSE, fig.cap="Standardized pitch", out.width = '100%'}
 knitr::include_graphics("pitch.png")
 ```
 
+\newpage
 
 ```{r echo=FALSE, fig.cap="Sample Control email", out.width = '100%'}
 knitr::include_graphics("control.png")
 ```
 
+\newpage
   
 ```{r echo=FALSE, fig.cap="Sample Treatment email", out.width = '100%'}
 knitr::include_graphics("treatment.png")
 ```
+
+\newpage
 
 **The experiment timeline**   
 >Mar 8-11 - gather participants  
@@ -667,5 +572,13 @@ knitr::include_graphics("treatment.png")
 >Mar 18 - treatment/control email [completed 11pm EST]  
 >Apr 2 - start final data collection  
 >Apr 6 - end final data collection  
->Apr 7 - start data analysis   
+>Apr 7 - start data analysis  
 
+\newpage
+
+**Covariate balance check model results**
+
+```{r results='asis'}
+stargazer(cov_balance_check1)
+
+```
