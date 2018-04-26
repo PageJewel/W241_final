@@ -23,6 +23,7 @@ library(reshape)
 library(corrplot)
 library(stargazer)
 library(gridExtra)
+library(data.table)
 ``` 
 
 ##Introduction
@@ -374,6 +375,40 @@ first_quartile: Similar to the OPower study, we expected that those who already 
 all_data$first_quartile <- all_data$hoursTV < quantile(all_data$hoursTV, 0.25)
 m <- lm(reportedhrs_P/2 ~ Assigned * Treated + gender + age + region + employment + maritalStatus + children + binge + watchAlone + shareProfile + source + hoursTV + extension + first_quartile, all_data[all_data$Finished==1,])
 stargazer(m, type='text', omit=c('region', 'age', 'employment', 'maritalStatus', 'binge', 'children', 'Constant'), omit.stat=c('rsq', 'adj.rsq', 'f'))
+```
+
+
+**Randomization Inference**
+When we run randomization inference on our standardized treatment effect (reported TV hours during survey - pre-survey TV hours) of -0.82 hours, we find a very high p-value (p=0.29) suggesting that while our experiments yields a negative treatment effect (those in the treatment group watched less TV than their control group counterparts during the two weeks of the experiment), our results are not all that statistically significant.
+
+```{r echo=FALSE}
+#extract needed columns and put into a data table. create a 'dnd' column for TV watched during survey - pre-survey reported TV hours
+cols <- c(1, 9, 22, 29)
+dt <- data.table(all_data[ ,cols])
+dt [ , dnd := reportedhrs_P - 2*hoursTV] #we multply by pre-survey tv hours by roughly 2 because its a weekly #
+
+#use a function to perform the randomization inference
+set.seed(131)
+ri <- function(iter=500) {
+  true_ate <- dt[ , .(m = mean(dnd, na.rm=T)), keyby = Assigned][ , .(ate = diff(m))]
+  
+  ri_dist <- rep(NA, iter)
+    for(i in 1:iter) {
+        ri_dist[i] <- dt[ , .(m=mean(dnd, na.rm=T)),keyby=sample(Assigned, replace=T)] %>%
+            .[ , .(ri_ate=diff(m))]
+    }
+    return(list(true_ate, ri_dist))
+}
+
+ri_model <- ri(iter=500)
+
+#plot results and calculate p-value
+null_dist <- unlist(ri_model[[2]])
+hist(null_dist, xlim = c(-10, 10), main= "Sharp Null Distribution", xlab = "Draws from Randomization Inference", col = "black")
+abline(v=ri_result[[1]], col = "red")
+text(0,80, label=paste0("ATE= ", round(ri_result[[1]],2)), col = "red")
+text(7,40, label=paste0("p-value= ",mean(ri_model[[1]]$ate > null_dist)),col = "blue")
+
 ```
 
 **Model Building**
