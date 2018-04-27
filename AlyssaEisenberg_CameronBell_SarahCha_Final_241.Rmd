@@ -289,6 +289,9 @@ all_data$Treated <- as.numeric(all_data$Treated)
 all_data$Treated[is.na(all_data$Treated)] <- 0
 all_data$Treated <- ifelse(all_data$Treated == 3, 1, 0)
 
+#Create first quartile dummy
+all_data$first_quartile <- all_data$hoursTV < quantile(all_data$hoursTV, 0.25)
+
 #clean Netflix data
 all_data$NFLXreading <- (all_data$netflixDays_P*24) + all_data$netflixHours_P + (all_data$netflixMin_P/60)
 all_data$extension <- is.na(as.numeric(all_data$netflixMin)) #indicates whether used extension in pre-survey
@@ -353,7 +356,7 @@ outcomes <- data.frame(variable = c("Change in Weekly Hrs TV"),
                        treatment = c(t9),
                        diff = c(diff9),
                        se = c(se9))
-knitr::kable(outcomes) 
+knitr::kable(outcomes, 'latex') 
 ```
 
 ```{r echo=FALSE}
@@ -429,15 +432,15 @@ text(7,40, label=paste0("p-value= ",mean(ri_model[[1]]$ate > null_dist)),col = "
 
 Next, we analyze the outcome of weekly hours TV watched during the experiment period using covariates to reduce our standard errors (including weekly hours of TV prior to the experiment). Our first step in this process is to identify which of our covariates are interesting to include in a regression model.
 
-A few things stood out to us in terms of high level trends. First of all, the pre-survey "TV hours watched" covariate appeared most negative correlated with tendency to binge (ie. those who indicated a greater tendency to binge ended up logging less pre-survey hours) and tendency to watch TV alone (vs. with someone else or a group). On the other hand, the pre-survey "TV hours watched" appears more positively correlated with feelings of regret or that they had spent more time watching TV than they would have liked. In terms of the key outcome measure of reported hours of TV watched during the survey period, as we suspected the correlation matrix below seems to suggest there is a strong positive correlation between pre-survey TV watching and survey TV watching. We also again see a reasonably high negative correlation between the outcome measure and the tendency to binge. 
+A few things stood out to us in terms of high level trends. First of all, the pre-survey "TV hours watched" covariate appeared most strongly correlated with tendency to binge (ie. those who indicated a greater tendency to binge ended up logging more pre-survey hours), tendency to watch TV alone (vs. with someone else or a group), and feelings of regret or that they had spent more time watching TV than they would have liked. In terms of the key outcome measure of reported hours of TV watched during the survey period, as we suspected the correlation matrix below seems to suggest there is a strong positive correlation between pre-survey TV watching and survey TV watching. We also again see a reasonably high positive correlation between the outcome measure and the tendency to binge. 
 
 ```{r echo=FALSE}
 #reordering some of the factor variables to make more intuitive sense for EDA
-levels(all_data$binge) = c("no", "once a year", "once every couple months", "once a month", "once a week")
-levels(all_data$employment) =c("looking", "homemaker", "student", "part", "self", "full")
-levels(all_data$children) = c("no", "yes")
-levels(all_data$shareProfile) =c("no", "yes")
-levels(all_data$watchAlone) = c("withOthers", "alone")
+all_data$employment <- factor(all_data$employment, levels(all_data$employment)[c(3,5,4,2,6,1)])
+all_data$binge <- factor(all_data$binge, levels(all_data$binge)[c(5,4,3,2,1)])
+all_data$children <- factor(all_data$children, levels(all_data$children)[c(2,1)])
+all_data$shareProfile <- factor(all_data$shareProfile, levels(all_data$shareProfile)[c(2,1)])
+all_data$watchAlone <- factor(all_data$watchAlone, levels(all_data$watchAlone)[c(2,1)])
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
@@ -525,7 +528,7 @@ We again find that our treatment effect and heterogeneous treatment effect are n
 
 ```{r results='asis', echo=FALSE, message=FALSE}
 mod_h1 <- lm(reportedhrs_P/2 ~ Assigned + hoursTV + Assigned:hoursTV, data=all_data)
-mod_h2 <- lm(reportedhrs_P/2 ~ Assigned + hoursTV + Assigned:hoursTV, data=all_data)
+mod_h2 <- lm(reportedhrs_P/2 ~ Assigned + hoursTV + first_quartile + Assigned:first_quartile, data=all_data)
 stargazer(mod_h1, mod_h2, header=F, no.space=TRUE)
 ```
 
@@ -585,6 +588,14 @@ That said, we would question the generalizability of this study. Given our limit
 >Apr 6 - end final data collection  
 >Apr 7 - start data analysis 
 
+**Covariate balance check model results**
+
+```{r results='asis', echo=FALSE}
+stargazer(cov_balance_check1, attrit_covariate_check, 
+          column.labels=c("Initial", "Post-attrition"),
+          report="vc*", header=F, no.space=TRUE)
+```
+
 \newpage
   
 ```{r echo=FALSE, fig.cap="Standardized pitch", out.width = '100%'}
@@ -603,14 +614,4 @@ knitr::include_graphics("control.png")
   
 ```{r echo=FALSE, fig.cap="Sample Treatment email", out.width = '100%'}
 knitr::include_graphics("treatment.png")
-```
-
-\newpage
-
-**Covariate balance check model results**
-
-```{r results='asis', echo=FALSE}
-stargazer(cov_balance_check1, attrit_covariate_check, 
-          column.labels=c("Initial", "Post-attrition"),
-          report="vc*", header=F, no.space=TRUE)
 ```
