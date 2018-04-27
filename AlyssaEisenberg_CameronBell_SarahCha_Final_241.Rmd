@@ -3,7 +3,7 @@ title: "TV Watching Habits Study"
 author: "Cameron Bell, Alyssa Eisenberg, Sarah Cha"
 date: "4/26/2018"
 output: pdf_document
-abstract: "Television is consumed through a growing number of channels today (cable, streaming networks like Hulu, Amazon, Netflix, and Youtube) while increasingly the mould for what looks like television is becoming more fluid (e.g. video clips on Youtube). We suspect some individuals don't actually realize how much television they're watching on a daily basis and we set out to understand how social pressures around television watching would alter or impact individual behavior. In our study, we randomly assigned treatment emails to half of the participants that highlights how much their peers are watching TV on average. XXX"
+abstract: "Television is consumed through a growing number of channels today (cable, streaming networks like Hulu, Amazon, Netflix, and Youtube) while increasingly the mould for what looks like television is becoming more fluid (e.g. video clips on Youtube). We suspect some individuals don't actually realize how much television they're watching on a daily basis and we set out to understand how social pressures around television watching would alter or impact individual behavior. In our study, we randomly assigned treatment emails to half of the participants that highlights how much their peers are watching TV on average. We found consistent negative point estimates of our treatment effect of 0.2-1hr/week, but did not obtain statistical significance for these results."
 ---
 
 ```{r setup, include=FALSE}
@@ -34,7 +34,7 @@ In other contexts, it has been found that providing peer comparisons can cause c
 
 We set up an experimental study where we randomly assigned treatment emails to half of the participants that summarizes how much their peers are watching television on average. We wanted to understand if social/peer pressure has the ability to impact how much television a person watches (e.g. "Wow, my peers are watching only 2 hours of TV a week and I'm watching at least 10. Shame on me."). 
 
-We begin by discussing the high level experimental design we developed to test whether social pressures/influence can actually impact individual behavior as it relates to TV watching, including changes based on an initial pilot study. Next, we discuss the details of our real experiment - the participants, the nature and frequency of the treatment, and our outcome measures. Statistical analysis from our study suggests that XXXXXXX taking into account non-compliance and attrition aspects of the experiment. We conclude by discussing the implications for generalizability to a broader population at large and future potential avenues for exploration.
+We begin by discussing the high level experimental design we developed to test whether social pressures/influence can actually impact individual behavior as it relates to TV watching, including changes based on an initial pilot study. Next, we discuss the details of our real experiment - the participants, the nature and frequency of the treatment, and our outcome measures. Then, we complete a range of statistical analyses suggesting a not statistically signficant negative treatment effect of 0.2-1 hr/week, taking into account attrition in the experiment. We conclude by discussing the implications for generalizability to a broader population at large and future potential avenues for exploration.
 
 ##Experimental Design
 
@@ -311,38 +311,76 @@ pct_sharing <- length(na.omit(all_data$NFLXreading[all_data$shareProfile=="no"])
 ##Results
 
 **Attrition**
+
 We witnessed high levels of attrition through out the experiment, ending up with 65 participants completing the post survey from 81 who were assigned into treatment vs. control. From the time the participants were assigned to treatment and control groups, we saw 17% attrition in the treatment group and 23% in the control. 
 
-Beyond examining direct attrition rates, we ran two tests for differential attrition and found no evidence to suggest that attrition differed based on treatment group. When we regressed completion on treatment group, we found that the coefficient on treatment assignment was not significant with a p-value of .475. Further, an ex-ante covariate balance check fails to reject null of no joint significance of covariates predicting treatment assignment with a p-value of 0.7853 (see Appendix for full results).  
+Beyond examining direct attrition rates, we ran two tests for differential attrition and found no evidence to suggest that attrition differed based on treatment group. When we regressed completion on treatment group, we found that the coefficient on treatment assignment was not significant with a p-value of .475. Further, an ex-ante covariate balance check fails to reject null of no joint significance of covariates predicting treatment assignment with a p-value of 0.7853 (see Appendix for full results). Given this, we will continue the analysis excluding the subjects who attrited, under the assumption that without differential attrition by treatment assignment we are calculating the ATE of the 'Always-Reporter'. 
 
-```{r results='asis', echo=FALSE}
+```{r echo=FALSE}
 #count attrition by assignment
 xtabs(~ Finished + Assigned, data=all_data)
+```
 
+```{r results='asis', echo=FALSE}
+#attrition checks
 attrit_by_assigned <- lm(Finished ~ Assigned, data=all_data)
-stargazer(attrit_by_assigned, header=F, type="text")
+stargazer(attrit_by_assigned, header=F)
 
 attrit_covariate_check <- lm(Assigned ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=all_data[all_data$Finished == 1 ,])
 ```
 
-**Summary of initial findings**
+**Initial Findings**
 
-The below plots show the distribution of amount of TV watched before and after for several groups: control participants, treatment participants who reported not receiving the email with the treatment bar chart, and treatment participants who reported receiving the email with the treatment bar chart. While this manipulation check is not perfect since it only reflects self-reported values, it does give us some idea of how treatment affected compliers and non-compliers differently.
+First, we examine the distributions of the weekly amount of TV watched by treatment assignment and calculate the difference-in-differences estimator by comparing the change in amount of weekly TV watched pre-experiment and during the experiment for the treatment and control groups. This finds an ATE of almost a one hour reduction in weekly TV, but a high standard error indicating that this is not statistically significant.
 
-We see that participating in the study did not affect the control group or the non-compliers in treatment.
-Though we recognize that asking the participants in the final survey if they ever received the treatment email acts as a poor proxy for identifying compliers, it allows us to calculate some somewhat-useful values for alpha and CACE (see below). We control for the one of the only statistically significant covariates, previous hours/week.
+The boxplot of the distributions show the same story - a slight increase in the median TV watched in the control group, and a slight decrease for the treatment group. However, you can see the wide spread in hours of TV watched contributing to the high standard errors.
 
 ```{r echo=FALSE}
-# control before and after
-#note that we exclude pre-survey responses from people who later attrited
-boxplot(all_data$reportedhrs_P[all_data$Assigned==0]/2,
-        all_data$hoursTV[all_data$Assigned==0 & all_data$Finished == 1],
-        names=c('After', 'Before'), main='Hours Watched (Control)', xlab='Hours of TV Watched per Week',
-        ylim=c(0,40), horizontal=T)
+# calculate ATE
+t9 <- round(mean(all_data$reportedhrs[all_data$Assigned==1 & all_data$Finished==1]/2 -
+                   all_data$hoursTV[all_data$Assigned==1 & all_data$Finished==1], na.rm=T),2)
+c9 <- round(mean(all_data$reportedhrs[all_data$Assigned==0 & all_data$Finished==1]/2 -
+                   all_data$hoursTV[all_data$Assigned==0 & all_data$Finished==1], na.rm=T),2)
+diff9 <- t9-c9
+se9 <- se_diff_means(as.numeric(all_data$reportedhrs[all_data$Assigned==1 & all_data$Finished==1]/2 -
+                   all_data$hoursTV[all_data$Assigned==1 & all_data$Finished==1]), 
+              as.numeric(all_data$reportedhrs[all_data$Assigned==0 & all_data$Finished==1]/2 -
+                   all_data$hoursTV[all_data$Assigned==0 & all_data$Finished==1]))
 
+#Put into a table for display
+outcomes <- data.frame(variable = c("Change in Weekly Hrs TV"),
+                       control = c(c9),
+                       treatment = c(t9),
+                       diff = c(diff9),
+                       se = c(se9))
+knitr::kable(outcomes) 
 ```
 
 ```{r echo=FALSE}
+# control and treatment, before and after
+#note that we exclude pre-survey responses from people who later attrited
+boxplot(all_data$reportedhrs_P[all_data$Assigned==0]/2,
+        all_data$hoursTV[all_data$Assigned==0 & all_data$Finished == 1],
+        all_data$reportedhrs_P[all_data$Assigned==1]/2,
+        all_data$hoursTV[all_data$Assigned==1 & all_data$Finished == 1],
+        names=c('After', 'Before', 'After', 'Before'), main='Hours Watched', 
+        xlab='Hours of TV Watched per Week', ylab="Control            Treatment",
+        ylim=c(0,40), horizontal=T)
+                                                                                                       
+```
+
+We also examine the results of our manipulation check, which was a question for those in treatment about whether they received an email with a bar chart providing information about their peers TV watching habits. This manipulation check is not a perfect identification of compliers since participants could either have not seen the email (ie, non-complier), or could have seen it and not remembered it (ie, weak treatment effect).
+
+The below boxplot shows the distributions for our treatment participants who did and did not report receiving the email with the treatment bar chart. We see that the distribution for non-compliers here appears different from the control group above since median hours of TV did decrease, but also appears to have a much smaller effect than compliers where the median hours of TV decreased more substantially. This indicates that at least some of the participants had a weak treatment effect as opposed to being true non-compliers.
+
+Still, analyzing this as a measure of non-compliance is interesting as it gives us an upper bound on the CACE. We already know from above that the ATE was -0.94. Our compliance rate was only 43%, leading to a CACE of -2.2 hours/week.
+
+```{r echo=FALSE}
+# CACE analysis
+ATE <- diff9
+alpha <- mean(all_data$Treated[(all_data$Assigned == 1) & (all_data$Finished == 1)])
+CACE <- ATE/alpha
+
 #treatment before and after, split by manipulation check
 #note that we exclude pre-survey responses from people who later attrited
 boxplot(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated==1]/2,
@@ -351,41 +389,17 @@ boxplot(all_data$reportedhrs_P[all_data$Assigned==1 & all_data$Treated==1]/2,
         all_data$hoursTV[all_data$Assigned==1 & all_data$Treated!=1 & all_data$Finished == 1],
         names=c('After', 'Before', 'After', 'Before'), main='Hours Watched (Treatment) per Week', xlab='Hours of TV Watched', ylab="Compliers            Non-Compliers",
         ylim=c(0,40), horizontal=T)
-
-# CACE analysis
-lm(reportedhrs_P/2 ~ Assigned + hoursTV, all_data)$coefficients[2]
-
-round(mean(all_data$reportedhrs_P[all_data$Assigned==0]/2, na.rm=T),2) #8.74
-round(mean(all_data$hoursTV[all_data$Assigned==0 & all_data$Finished == 1]),2) #8.22
-
-ATE <- lm(reportedhrs_P/2 ~ Assigned + hoursTV, all_data)$coefficients[2]
-alpha <- mean(all_data$Treated[(all_data$Assigned == 1) & (all_data$Finished == 1)])
-CACE <- ATE/alpha
 ```
-
-When we create the full model, we see that the only statistically significant covariates are hoursTV, which tells us the hours of TV watched per week previous to the study, and source, where we found the study participant. Below we discuss a few heterogeneous treatment effects we expected to see (but did not), and the treatment effect itself:
-Assigned: This is the variable that indicates assignment to treatment. There was no statistically significant  effect of receiving treatment as a whole.
-Treated: Reporting that a participant was a complier also had no effect.
-Assigned*Treated: We also saw no effect for the interaction term.
-We suspect that source (online/social media) may reflect a statistically significant heterogeneous treatment effect because it acts as a better proxy than Treated for identifying compliers. those who joined the study after recruitment on social media are likely close friends of those conducting the study and were more likely to pay attention to the process.
-extension: We expected to see that those who had installed the Chrome extension would have been shocked by how much Netflix they were watching (we were!) and reduced their watching habits due to that observation alone. However, there was no such effect.
-first_quartile: Similar to the OPower study, we expected that those who already watch very little TV would be the least affected by the study. However, there was no such statistically significant effect (likely because the treatment itself was not statistically significant).
-
-```{r}
-all_data$first_quartile <- all_data$hoursTV < quantile(all_data$hoursTV, 0.25)
-m <- lm(reportedhrs_P/2 ~ Assigned * Treated + gender + age + region + employment + maritalStatus + children + binge + watchAlone + shareProfile + source + hoursTV + extension + first_quartile, all_data[all_data$Finished==1,])
-stargazer(m, type='text', omit=c('region', 'age', 'employment', 'maritalStatus', 'binge', 'children', 'Constant'), omit.stat=c('rsq', 'adj.rsq', 'f'))
-```
-
 
 **Randomization Inference**
-When we run randomization inference on our standardized treatment effect (reported TV hours during survey - pre-survey TV hours) of -0.82 hours, we find a very high p-value (p=0.29) suggesting that while our experiments yields a negative treatment effect (those in the treatment group watched less TV than their control group counterparts during the two weeks of the experiment), our results are not all that statistically significant.
+
+Next, we examine our treatment effect (reported weekly TV hours during survey - pre-survey weekly TV hours) in a more rigorous fashion using randomization inference. We find that for our ATE of -0.95 hrs/week, there is a high p-value (p=0.29). This suggests that while our experiments yields a negative point estimate of the treatment effect (those in the treatment group watched less TV than their control group counterparts during the two weeks of the experiment), our results are not statistically significant and could have occured by chance.
 
 ```{r echo=FALSE}
 #extract needed columns and put into a data table. create a 'dnd' column for TV watched during survey - pre-survey reported TV hours
 cols <- c(1, 9, 22, 29)
 dt <- data.table(all_data[ ,cols])
-dt [ , dnd := reportedhrs_P - 2*hoursTV] #we multply by pre-survey tv hours by roughly 2 because its a weekly #
+dt [ , dnd := reportedhrs_P/2 - hoursTV] #converting both to weekly #
 
 #use a function to perform the randomization inference
 set.seed(131)
@@ -405,17 +419,19 @@ ri_model <- ri(iter=500)
 #plot results and calculate p-value
 null_dist <- unlist(ri_model[[2]])
 hist(null_dist, xlim = c(-10, 10), main= "Sharp Null Distribution", xlab = "Draws from Randomization Inference", col = "black")
-abline(v=ri_result[[1]], col = "red")
-text(0,80, label=paste0("ATE= ", round(ri_result[[1]],2)), col = "red")
+abline(v=ri_model[[1]], col = "red")
+text(0,80, label=paste0("ATE= ", round(ri_model[[1]],2)), col = "red")
 text(7,40, label=paste0("p-value= ",mean(ri_model[[1]]$ate > null_dist)),col = "blue")
 
 ```
 
-**Model Building**
+**Regression Including Covariates**
 
-In the exploratory data analysis portion of the model building, a few things stood out to us in terms of high level trends. First of all, the pre-survey "TV hours watched" covariate appeared most negative correlated with tendency to binge (ie. those who indicated a greater tendency to binge ended up logging less pre-survey hours) and tendency to watch TV alone (vs. with someone else or a group). On the other hand, the pre-survey "TV hours watched" appears more positively correlated with feelings of regret or that they had spent more time watching TV than they would have liked. In terms of the key outcome measure of reported hours of TV watched during the survey period, as we suspected the correlation matrix below seems to suggest there is a strong positive correlation between pre-survey TV watching and survey TV watching. We also again see a reasonably high negative correlation between the outcome measure and the tendency to binge. 
+Next, we analyze the outcome of weekly hours TV watched during the experiment period using covariates to reduce our standard errors (including weekly hours of TV prior to the experiment). Our first step in this process is to identify which of our covariates are interesting to include in a regression model.
 
-```{r}
+A few things stood out to us in terms of high level trends. First of all, the pre-survey "TV hours watched" covariate appeared most negative correlated with tendency to binge (ie. those who indicated a greater tendency to binge ended up logging less pre-survey hours) and tendency to watch TV alone (vs. with someone else or a group). On the other hand, the pre-survey "TV hours watched" appears more positively correlated with feelings of regret or that they had spent more time watching TV than they would have liked. In terms of the key outcome measure of reported hours of TV watched during the survey period, as we suspected the correlation matrix below seems to suggest there is a strong positive correlation between pre-survey TV watching and survey TV watching. We also again see a reasonably high negative correlation between the outcome measure and the tendency to binge. 
+
+```{r echo=FALSE}
 #reordering some of the factor variables to make more intuitive sense for EDA
 levels(all_data$binge) = c("no", "once a year", "once every couple months", "once a month", "once a week")
 levels(all_data$employment) =c("looking", "homemaker", "student", "part", "self", "full")
@@ -424,10 +440,10 @@ levels(all_data$shareProfile) =c("no", "yes")
 levels(all_data$watchAlone) = c("withOthers", "alone")
 ```
 
-```{r message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE}
 # Make correlation plot
 cols <- c(3:15, 20, 22, 30)
-all_data_numeric <- all_data[cols]
+all_data_numeric <- all_data[all_data$Finished==1, cols]
 colnames(all_data_numeric) =c("gender", "age", "region", "employment", "martial status", "children", "hoursTV", "binge", "primary source", "allMethods", "regrets", "alone", "share profile", "source", "reported hrs", "netflix reading")
 DF <- data.frame(lapply(all_data_numeric,as.numeric))
 corrmatrix = round(cor(DF[, sapply(DF, is.numeric)], use = "na.or.complete"),
@@ -435,57 +451,90 @@ corrmatrix = round(cor(DF[, sapply(DF, is.numeric)], use = "na.or.complete"),
 corrplot(corrmatrix)
 ```
 
-We conducted further EDA for other variables like age, region, and marital status to see if there were any noteworthy patterns. We immediately ruled out age and employment because there were some pretty big clusters in the data that made it hard to get sizable groups (for example, more than 75% of our participants were in the 22-34 age and over 60% of participants said they were currently looking for jobs). By including them in the equation we'd likely end up with some pretty small groups which could skew the comparison quite a bit. Further, most of our participants were from the Northeast and West Coast which wasn't a huge surprise to us given how we targeted participants but the average TV_hours watched during the survey period by Northeast vs. West Coast doesn't appear to be all that different upon exploring the data. As such, we decided not to include region in the model.   
+We conducted further EDA for other variables like age, region, and marital status to see if there were any noteworthy patterns. We immediately ruled out age and employment because there were some pretty big clusters in the data that made it hard to get sizable groups (for example, more than 75% of our participants were in the 22-34 age and around 60% of participants had full time jobs). By including them in the equation we'd likely end up with some pretty small groups which could skew the comparison quite a bit. Further, most of our participants were from the Northeast and West Coast which wasn't a huge surprise to us given how we targeted participants but the average TV_hours watched during the survey period by Northeast vs. West Coast doesn't appear to be all that different upon exploring the data. As such, we decided not to include region in the model.   
 
-```{r}
-all_data$TV_bin<- cut(all_data$reportedhrs_P, breaks=c(0,10,20,30,40,50,60,70,80), 
-                              labels=c("0-10","10-20", "20-30", "30-40", "40-50", "50-60", "60-70","70-80"), include.lowest=TRUE)
-xtabs(~all_data$employment + all_data$TV_bin)
+```{r echo=FALSE}
+#employment and age variables
+table(all_data$employment[all_data$Finished==1])
+
+table(all_data$age[all_data$Finished==1])
 ```
 
-```{r fig.height = 3, fig.width = 6}
+```{r fig.height = 3, fig.width = 6, echo=FALSE}
 #Region variable
-regions <- data.frame(aggregate(all_data$reportedhrs_P, by=list(all_data$region), FUN=mean, na.rm=TRUE))
+regions <- data.frame(aggregate(all_data$reportedhrs_P[all_data$Finished==1]/2, 
+                                by=list(all_data$region[all_data$Finished==1]), FUN=mean, na.rm=TRUE))
 colnames(regions) <- c("region", "average_TV_hours")
 
 ggplot(data=regions, aes(x=region, y=average_TV_hours))+
-  geom_bar(stat="identity")
+  geom_bar(stat="identity") + ggtitle("Weekly TV by Region")
 
-table(all_data$region)
+table(all_data$region[all_data$Finished==1])
 ```
   
+Marital status and gender were two variables that seemed like it could make some sense to include in model. There are roughly an equal proportion of single vs. married individuals in our study (41 vs. 39) and married individuals in the study on average watched a little over 1.5 hours per week more of television during the 2 week study than their single counterparts did. It may make sense to use an indicator variable for 'married' as a result. There were also some modest signs to suggest that females had much more clustered values toward the low end of the TV watching spectrum while most of the outliers were male, making that a potentially interesting variable to include.  
 
-Marital status and gender were two variables that seemed like it could make some sense to include in model. There are roughly an equal proportion of single vs. married individuals in our study (41 vs. 39) and married individuals in the study on averaged watched a little over 3 hours more of television during the 2 week study than their single counterparts did. It may make sense to use an indicator variable for 'married' as a result. There were also some modest signs to suggest that females had much more clustered values toward the low end of the TV watching spectrum while most of the outliers were male, making that a potentially interesting variable to include.  
-
-```{r}
+```{r fig.height = 3, echo=FALSE}
 #Marital Status variable
-married <- data.frame(aggregate(all_data$reportedhrs_P, by=list(all_data$maritalStatus), FUN=mean, na.rm=TRUE))
-colnames(married) <- c("marital_status", "average_TV_hours")
-
-ggplot(data=married, aes(x=marital_status, y=average_TV_hours))+
-  geom_bar(stat="identity")
-
-```
-
-
-```{r message=FALSE, warning=FALSE}
-ggplot(all_data) +
-  geom_density(aes(x=all_data$reportedhrs_P, fill=all_data$gender))
-```
-
-
-Below is a model using all of the variables that seemed to be noteworthy from our exploratory data analysis. Interestingly the only statistically significant variable (at a p-value of 5% or less) was the pre-survey TV hours. The treatment effect was -0.27 suggesting a small decrease in TV watching for the treatment groupu but it was not statistically significant. 
-
-```{r message=FALSE}
 all_data$married = ifelse(all_data$maritalStatus == "married", 1, 0)
-mod_EDA <- lm(reportedhrs_P ~ Assigned + hoursTV +  binge + moreTimeThanWanted + watchAlone+ married + gender, data=all_data)
-stargazer(mod_EDA, type = "text", title="Model X - Based on EDA")
+married <- data.frame(aggregate(all_data$reportedhrs_P[all_data$Finished==1]/2, 
+                                by=list(all_data$married[all_data$Finished==1]), FUN=mean, na.rm=TRUE))
+colnames(married) <- c("married", "average_TV_hours")
+
+ggplot(data=married, aes(x=factor(married), y=average_TV_hours))+
+  geom_bar(stat="identity") + ggtitle("Weekly TV by Marital Status")
+
 ```
 
+
+```{r fig.height=3, echo=FALSE, message=FALSE, warning=FALSE}
+# gender variable
+ggplot(all_data[all_data$Finished==1,]) +
+  geom_density(aes(x=all_data$reportedhrs_P[all_data$Finished==1]/2, fill=all_data$gender[all_data$Finished==1])) +
+  ggtitle("Weekly TV by Gender")
+```
+
+
+Finally, we examined whether the participant provided their data from the Netflix extension in the pre-survey. While the end data from this extension was not useful for analysis, we were concerned that seeing this data may have an impact on the subsequent amount of TV a participant watched (although the randomization means this would not bias our results). Indeed, we see that on average, those who reported the times from their Netflix extension watched about 2 hours less TV per week. Note that this is not a causal estimate since it could be a selection effect (those who chose to install the extension are those who watched less TV to begin with). Still, this is a variable to try including as a covariate as it may help lower our standard errors.
+
+```{r fig.height=3, echo=FALSE, message=FALSE, warning=FALSE}
+# Provided Netflix extension data in pre-survey variable
+extension <- data.frame(aggregate(all_data$reportedhrs_P[all_data$Finished==1]/2, 
+                                by=list(all_data$extension[all_data$Finished==1]), FUN=mean, na.rm=TRUE))
+colnames(extension) <- c("included_extension_results", "average_TV_hours")
+
+ggplot(data=extension, aes(x=included_extension_results, y=average_TV_hours))+
+  geom_bar(stat="identity") + ggtitle("Weekly TV by Reporting Netflix Extension Times")
+
+```
+
+Having explored our data and identified several potential covariates, we now run our regression models. This includes a base model with only the pre-experiment hours of TV as a covariate, an intermediate model with the additional binary covariates, then also the full covariate model including all variables of interest. We see that for all the models, our estimate of the ATE is negative but not statistically significant (ranges from -0.2 to -0.6). We also see that the only statistically significant variable (at a p-value of 5% or less) was the pre-survey TV hours. This indicates that the other potential covariates do not explain more of the variance in our outcome TV watched beyond that already accounted for in the pre-survey TV hours.
+
+```{r results='asis', echo=FALSE, message=FALSE}
+mod_base <- lm(reportedhrs_P/2 ~ Assigned + hoursTV, data=all_data)
+mod_int <- lm(reportedhrs_P/2 ~ Assigned + hoursTV + watchAlone + married + gender + extension, data=all_data)
+mod_EDA <- lm(reportedhrs_P/2 ~ Assigned + hoursTV +  binge + moreTimeThanWanted + watchAlone + married + gender + extension, data=all_data)
+stargazer(mod_base, mod_int, mod_EDA, header=F, no.space=TRUE)
+```
+
+**Regression Heterogeneous Effects**
+
+Above, we identified above that our pre-survey amount of TV watched was the only statistically significant variable in predicting the amount of TV watched during the experiment. Combining this with our original hypothesis that those watching less TV would not have the same treatment effect, we will test for a heterogenous effect based on pre-survey hours of TV watched. We test this in two ways - pure pre-survey hours TV, and a dummy variable for participants being in the first quartile.
+
+We again find that our treatment effect and heterogeneous treatment effect are not statistically significant in either specification. The point estimates align with our expectations. In the first model on pure hours TV, we see larger treatment effects when the participant watched more hours of TV before the experiment. In the second model using the dummy variable, we see that for those in the first quartile who would presumably not feel any peer pressure to watch less TV based on the information we provided, the treatment effect is practically 0 (-0.8 + 0.746), compared to the treatment effect for those not in the first quartile of -0.8.
+
+```{r results='asis', echo=FALSE, message=FALSE}
+mod_h1 <- lm(reportedhrs_P/2 ~ Assigned + hoursTV + Assigned:hoursTV, data=all_data)
+mod_h2 <- lm(reportedhrs_P/2 ~ Assigned + hoursTV + Assigned:hoursTV, data=all_data)
+stargazer(mod_h1, mod_h2, header=F, no.space=TRUE)
+```
 
 
 ##Conclusion
-Our study on TV watching behavior was ultimately inconclusive as there were no signs that being assigned to the treatment group and being shown how much TV peers are watching had any bearing on actual watching behavior. However, while the treatment effect was not statistically significant, we were able to show that self-reported compliers changed their behavior the most, indicating a CACE of -1 hr 23 min per week (a 16% reduction off the average 8 hours 35 min). The most statistically significant predictor we found was previous TV watching behavior. That said we would question the generalizability of this study. Given the limited resources we had we sampled from a pretty narrow constituent base. Most of our participants were aged 22-34 and living in either the Northeast or West Coast. Further, the fact that 60% of our participants were "looking" for employment suggested to us that students were potentially a large part the base here and that's likely not that indicative of the broader population. 
+
+Our study on TV watching behavior was ultimately inconclusive as there were no statistical differences in actual watching behavior for the group assigned to the treatment of being shown how much TV peers are watching. However, while the treatment effect was not statistically significant, we were able to show a consistent negative point estimate of the treatment effect across multiple specifications in the range of 0.2 - 1 hour / week, and up to -2.2 hours/week for CACE (assuming our manipulation check truly identified compliance). We also found point estimates of the heterogeneous treatment effects which agreed with our original hypothesis, where those in the first quartile did not have a treatment effect and those not in the first quartile had a stronger negative effect of -0.8. The most statistically significant predictor we found was previous TV watching behavior. We believe that our study was likely underpowered to identify these small treatment effects with significance.
+
+That said, we would question the generalizability of this study. Given our limited resources, we sampled from a pretty narrow constituent base. Most of our participants were aged 22-34 and living in either the Northeast or West Coast, with a relatively large student contingent. This sample is likely not that indicative of the broader population and an experiment with a larger sample size and more representative population would have to be conducted to learn more.
 
 ##Appendix
 
@@ -511,7 +560,8 @@ Our study on TV watching behavior was ultimately inconclusive as there were no s
 
 >1. Provide us with your email address. This is the same identifier you used on the first survey and how we have been contacting you.
 >2. How much television did you watch during the study period from Feb 28 through March 1, inclusive? This includes cable, online streaming, and YouTube, and can consist of movies, tv shows, and video clips.
->3. Input the time reading from your Chrome Netflix extension.   
+>3. Input the time reading from your Chrome Netflix extension.
+>4. (treatment group only) Did you receive an email between surveys providing a bar chart with information about TV watching habits among our study participants?
 
 \newpage
 
@@ -523,15 +573,7 @@ Our study on TV watching behavior was ultimately inconclusive as there were no s
 
 3. At the mid-point of the ranges, individuals in the pilot reported watching 7.75 hours of TV a week. Netflix was the primary method of watching TV for half of the individuals while cable and other were the primary method for the other half while 7 of the 8 individuals said they consumed television through Netflix. 
 
-4. 3 of 8 individuals were unable to install the extension either because they don't have a Netflix account or they don't use Chrome as their web browser. Of the individuals that did input a reading from the extension, the average Netflix consumption over the prior two weeks was 787.2 minutes or just over 13 hours of TV.  
-
-\newpage
-  
-```{r echo=FALSE, fig.cap="Standardized pitch", out.width = '100%'}
-knitr::include_graphics("pitch.png")
-```
-
-\newpage
+4. 3 of 8 individuals were unable to install the extension either because they don't have a Netflix account or they don't use Chrome as their web browser. Of the individuals that did input a reading from the extension, the average Netflix consumption over the prior two weeks was 787.2 minutes or just over 13 hours of TV.
 
 **The experiment timeline**   
 
@@ -544,6 +586,10 @@ knitr::include_graphics("pitch.png")
 >Apr 7 - start data analysis 
 
 \newpage
+  
+```{r echo=FALSE, fig.cap="Standardized pitch", out.width = '100%'}
+knitr::include_graphics("pitch.png")
+```
 
 ```{r echo=FALSE, fig.cap="Flow Diagram for Participants", out.width = '100%'}
 knitr::include_graphics("flow.png")
@@ -554,8 +600,6 @@ knitr::include_graphics("flow.png")
 ```{r echo=FALSE, fig.cap="Sample Control email", out.width = '100%'}
 knitr::include_graphics("control.png")
 ```
-
-\newpage
   
 ```{r echo=FALSE, fig.cap="Sample Treatment email", out.width = '100%'}
 knitr::include_graphics("treatment.png")
@@ -568,5 +612,5 @@ knitr::include_graphics("treatment.png")
 ```{r results='asis', echo=FALSE}
 stargazer(cov_balance_check1, attrit_covariate_check, 
           column.labels=c("Initial", "Post-attrition"),
-          header=F, no.space=TRUE)
+          report="vc*", header=F, no.space=TRUE)
 ```
