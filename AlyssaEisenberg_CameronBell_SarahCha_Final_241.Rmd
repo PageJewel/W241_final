@@ -325,12 +325,12 @@ stargazer(attrit_by_assigned, header=F, type="text")
 attrit_covariate_check <- lm(Assigned ~ gender + age + region + employment + maritalStatus + children + hoursTV + binge + primaryChannel + moreTimeThanWanted + watchAlone + shareProfile + source, data=all_data[all_data$Finished == 1 ,])
 ```
 
-**Summary of initial findings: IN PROGRESS(ALYSSA)**
+**Summary of initial findings**
 
-The below plots show the distribution of amount of TV watched before and after for several groups: control participants, treatment participants who reported not receiving the email with the treatment bar chart, and treatment participants who reported receiving the email with the treatment bar chart. While this maninipulation check is not perfect since 
+The below plots show the distribution of amount of TV watched before and after for several groups: control participants, treatment participants who reported not receiving the email with the treatment bar chart, and treatment participants who reported receiving the email with the treatment bar chart. While this manipulation check is not perfect since it only reflects self-reported values, it does give us some idea of how treatment affected compliers and non-compliers differently.
 
-In the below plots we see that participating in the study did not affect the control group or the non-compliers in treatment.
-Though we recognize that asking the participants in the final survey if they ever received the treatment email acts as a poor proxy for identifying compliers, it allows us to calculate some somewhat-useful values for alpha and CACE (see below). We control for the only statistically significant covariate, previous hours/week.
+We see that participating in the study did not affect the control group or the non-compliers in treatment.
+Though we recognize that asking the participants in the final survey if they ever received the treatment email acts as a poor proxy for identifying compliers, it allows us to calculate some somewhat-useful values for alpha and CACE (see below). We control for the one of the only statistically significant covariates, previous hours/week.
 
 ```{r echo=FALSE}
 # control before and after
@@ -367,7 +367,7 @@ When we create the full model, we see that the only statistically significant co
 Assigned: This is the variable that indicates assignment to treatment. There was no statistically significant  effect of receiving treatment as a whole.
 Treated: Reporting that a participant was a complier also had no effect.
 Assigned*Treated: We also saw no effect for the interaction term.
-We suspect that source (online/social media) may reflect a statistically significant heterogeneous treatment effect because it ts as a better proxy than Treated for identifying compliers. those who joined the study after recruitment on social media are likely close friends of those conducting the study and were more likely to pay attention to the process.
+We suspect that source (online/social media) may reflect a statistically significant heterogeneous treatment effect because it acts as a better proxy than Treated for identifying compliers. those who joined the study after recruitment on social media are likely close friends of those conducting the study and were more likely to pay attention to the process.
 extension: We expected to see that those who had installed the Chrome extension would have been shocked by how much Netflix they were watching (we were!) and reduced their watching habits due to that observation alone. However, there was no such effect.
 first_quartile: Similar to the OPower study, we expected that those who already watch very little TV would be the least affected by the study. However, there was no such statistically significant effect (likely because the treatment itself was not statistically significant).
 
@@ -485,7 +485,7 @@ stargazer(mod_EDA, type = "text", title="Model X - Based on EDA")
 
 
 ##Conclusion
-Our study on TV watching behavior was ultimately inconclusive as there were no signs that being assigned to the treatment group and being shown how much TV peers are watching had any bearing on actual watching behavior. Our strongest model based on XXX showed XXX. The most statistically significant predictor we found was previous TV watching behavior. That said we would question the generalizaility of this study. Given the limited resources we had we sampled from a pretty narrow constituent base. Most of our participants were aged 22-34 and living in either the Northeast or West Coast. Further, the fact that 60% of our participants were "looking" for employment suggested to us that students were potentially a large part the base here and that's likely not that indicative of the broader population. 
+Our study on TV watching behavior was ultimately inconclusive as there were no signs that being assigned to the treatment group and being shown how much TV peers are watching had any bearing on actual watching behavior. However, while the treatment effect was not statistically significant, we were able to show that self-reported compliers changed their behavior the most, indicating a CACE of -1 hr 23 min per week (a 16% reduction off the average 8 hours 35 min). The most statistically significant predictor we found was previous TV watching behavior. That said we would question the generalizability of this study. Given the limited resources we had we sampled from a pretty narrow constituent base. Most of our participants were aged 22-34 and living in either the Northeast or West Coast. Further, the fact that 60% of our participants were "looking" for employment suggested to us that students were potentially a large part the base here and that's likely not that indicative of the broader population. 
 
 ##Appendix
 
