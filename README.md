@@ -9,7 +9,7 @@ Our experimental design follows a difference in difference approach. Our experim
 
 ### Setting up the experiment
 **The standard pitch we gave to recruit subjects** - *pitch.png*  
-**A copy of the emails we sent to participants throughout experiment** - *TV Habits Study Subjects Emails.xlsx*  
+**Email addresses for initial participants** - *TV Habits Study Subjects Emails.xlsx*  
 **Setting up the Netflix extension** - *netflix_extension folder*  
 
 ### The Data
